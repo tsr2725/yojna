@@ -1,1 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yojna — Project Expense &amp; Management</title>
 
+  <!-- Inter Font for crisp, modern legibility -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6 Free CDN for monochrome single-color icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            sage: {
+              DEFAULT: '#7EA172',
+              dark: '#6B8D60',
+              light: '#F1F5F0',
+              border: '#C5D6BF',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* ==========================================================================
+       Base & Strict Monochrome + #7EA172 Design Tokens
+       ========================================================================== */
+    :root {
+      --yojna-accent: #7EA172;
+      --yojna-accent-hover: #6B8D60;
+      --yojna-accent-tint: #F1F5F0;
+      --yojna-black: #111827;
+      --yojna-pure-black: #000000;
+      --yojna-white: #FFFFFF;
+      --yojna-bg: #F4F5F4;
+      --yojna-border: #E5E7EB;
+      --yojna-muted: #6B7280;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--yojna-bg);
+      color: var(--yojna-black);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Tabular numbers for aligned dollar values */
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Subtle smooth transitions */
+    .smooth-transition {
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Gentle shake animation for validation feedback without using alert() */
+    @keyframes gentleShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-5px); }
+      40% { transform: translateX(5px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+    .animate-shake {
+      animation: gentleShake 0.32s ease-in-out;
+    }
+
+    /* Remove default number input spinners for cleaner dollar input */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    /* Custom date input styling to blend seamlessly into the metadata bar */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.15s ease;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+    }
+
+    /* ==========================================================================
+       Print / Save as PDF Stylesheet (@media print)
+       Hides interactive buttons/inputs and produces a clean ledger document
+       ========================================================================== */
+    @media print {
+      body {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .print-only {
+        display: block !important;
+      }
+
+      .print-container {
+        max-width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .print-card {
+        border: 1px solid #D1D5DB !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+
+      input[type="date"] {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        font-weight: 600 !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#7EA172] selection:text-white">
+
+  <!-- Main Centered Responsive Shell -->
+  <div class="w-full max-w-2xl mx-auto px-4 sm:px-6 py-5 sm:py-8 flex-1 flex flex-col print-container">
+
+    <!-- ========================================================================
+         SCREEN 1: HOME SCREEN
+         ======================================================================== -->
+    <section id="home-screen" class="flex-1 flex flex-col">
+      <!-- Home Header -->
+      <header class="flex items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3.5">
+          <!-- REPLACE WITH Yojna LOGO -->
+          <div
+            class="w-11 h-11 rounded-xl bg-white border-2 border-dashed border-[#9CA3AF] flex items-center justify-center text-[#4B5563] shrink-0 shadow-xs"
+            title="Yojna Logo Placeholder — Replace with your custom logo image"
+            aria-label="Yojna Logo Placeholder"
+          >
+            <!-- Replace this geometric icon with: <img src="your-logo.png" alt="Yojna Logo" class="w-full h-full object-contain rounded-xl" /> -->
+            <i class="fa-solid fa-layer-group text-base text-[#111827]"></i>
+          </div>
+
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#7EA172] leading-none">
+              Yojna
+            </h1>
+            <p class="text-xs text-[#6B7280] mt-1 font-medium">
+              Project plans &amp; expense ledger
+            </p>
+          </div>
+        </div>
+
+        <!-- Create New Project Button -->
+        <button
+          id="open-create-modal-btn"
+          type="button"
+          class="inline-flex items-center gap-2 bg-[#7EA172] hover:bg-[#6B8D60] active:scale-[0.98] text-white font-semibold text-sm px-4 py-2.5 rounded-xl shadow-xs smooth-transition cursor-pointer"
+        >
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>New Project</span>
+        </button>
+      </header>
+
+      <!-- Segmented Navigation / Filter Tabs (Ongoing vs Done) -->
+      <div
+        class="grid grid-cols-2 gap-1.5 bg-[#E5E7EB] p-1.5 rounded-xl mb-5"
+        role="tablist"
+        aria-label="Project Status Filter"
+      >
+        <button
+          id="tab-ongoing"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold smooth-transition cursor-pointer bg-white text-[#111827] shadow-xs"
+        >
+          <span>Ongoing</span>
+          <span
+            id="count-ongoing"
+            class="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-xs font-bold bg-[#7EA172] text-white tabular-nums"
+          >
+            0
+          </span>
+        </button>
+
+        <button
+          id="tab-done"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold smooth-transition cursor-pointer text-[#4B5563] hover:text-[#111827]"
+        >
+          <span>Done</span>
+          <span
+            id="count-done"
+            class="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-xs font-bold bg-[#D1D5DB] text-[#111827] tabular-nums"
+          >
+            0
+          </span>
+        </button>
+      </div>
+
+      <!-- Project Button List Container -->
+      <main id="project-list" class="space-y-3 flex-1" aria-live="polite">
+        <!-- Project cards are dynamically rendered here -->
+      </main>
+    </section>
+
+    <!-- ========================================================================
+         SCREEN 2: PROJECT DETAIL SCREEN
+         ======================================================================== -->
+    <section id="detail-screen" class="hidden flex-1 flex-col">
+      <!-- Top Header: Back Button + Logo Placeholder + Project Name in #7EA172 + Three-Dot Menu -->
+      <header class="flex items-center justify-between gap-2.5 mb-5">
+        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <!-- Back to Home Screen Button -->
+          <button
+            id="back-to-home-btn"
+            type="button"
+            title="Back to Projects"
+            aria-label="Back to Projects"
+            class="no-print w-10 h-10 rounded-xl bg-white border border-[#E5E7EB] hover:border-[#9CA3AF] active:scale-95 flex items-center justify-center text-[#111827] shrink-0 smooth-transition cursor-pointer"
+          >
+            <i class="fa-solid fa-arrow-left text-sm"></i>
+          </button>
+
+          <!-- REPLACE WITH Yojna LOGO -->
+          <div
+            class="w-10 h-10 rounded-xl bg-white border-2 border-dashed border-[#9CA3AF] flex items-center justify-center text-[#4B5563] shrink-0"
+            title="Yojna Logo Placeholder — Replace with your custom logo image"
+            aria-label="Yojna Logo Placeholder"
+          >
+            <!-- Replace this geometric icon with: <img src="your-logo.png" alt="Yojna Logo" class="w-full h-full object-contain rounded-xl" /> -->
+            <i class="fa-solid fa-layer-group text-sm text-[#111827]"></i>
+          </div>
+
+          <!-- Project Title in bold #7EA172 -->
+          <div class="min-w-0">
+            <h1
+              id="detail-project-name"
+              class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#7EA172] truncate"
+            >
+              Project Name
+            </h1>
+          </div>
+        </div>
+
+        <!-- Three-Dot Menu Container -->
+        <div class="relative no-print shrink-0" id="menu-wrapper">
+          <button
+            id="three-dot-btn"
+            type="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-label="Project Options"
+            title="Project Options"
+            class="w-10 h-10 rounded-xl bg-white border border-[#E5E7EB] hover:border-[#9CA3AF] active:scale-95 flex items-center justify-center text-[#111827] smooth-transition cursor-pointer"
+          >
+            <i class="fa-solid fa-ellipsis-vertical text-base"></i>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            id="three-dot-menu"
+            role="menu"
+            class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-[#E5E7EB] shadow-lg py-1.5 z-40 origin-top-right"
+          >
+            <button
+              id="menu-print-btn"
+              type="button"
+              role="menuitem"
+              class="w-full px-4 py-2.5 text-left text-sm font-medium text-[#111827] hover:bg-[#F4F5F4] flex items-center gap-3 smooth-transition cursor-pointer"
+            >
+              <i class="fa-solid fa-print w-4 text-center text-[#4B5563]"></i>
+              <span>Print</span>
+            </button>
+
+            <button
+              id="menu-share-pdf-btn"
+              type="button"
+              role="menuitem"
+              class="w-full px-4 py-2.5 text-left text-sm font-medium text-[#111827] hover:bg-[#F4F5F4] flex items-center gap-3 smooth-transition cursor-pointer"
+            >
+              <i class="fa-solid fa-file-arrow-down w-4 text-center text-[#4B5563]"></i>
+              <span>Share / Save PDF</span>
+            </button>
+
+            <div class="my-1 border-t border-[#E5E7EB]"></div>
+
+            <button
+              id="menu-edit-date-btn"
+              type="button"
+              role="menuitem"
+              class="w-full px-4 py-2.5 text-left text-sm font-medium text-[#111827] hover:bg-[#F4F5F4] flex items-center gap-3 smooth-transition cursor-pointer"
+            >
+              <i class="fa-solid fa-calendar-days w-4 text-center text-[#4B5563]"></i>
+              <span>Edit Start Date</span>
+            </button>
+
+            <button
+              id="menu-toggle-status-btn"
+              type="button"
+              role="menuitem"
+              class="w-full px-4 py-2.5 text-left text-sm font-medium text-[#111827] hover:bg-[#F4F5F4] flex items-center gap-3 smooth-transition cursor-pointer"
+            >
+              <i id="menu-toggle-status-icon" class="fa-solid fa-circle-check w-4 text-center text-[#7EA172]"></i>
+              <span id="menu-toggle-status-label">Mark as Done</span>
+            </button>
+
+            <button
+              id="menu-rename-btn"
+              type="button"
+              role="menuitem"
+              class="w-full px-4 py-2.5 text-left text-sm font-medium text-[#111827] hover:bg-[#F4F5F4] flex items-center gap-3 smooth-transition cursor-pointer"
+            >
+              <i class="fa-solid fa-pen w-4 text-center text-[#4B5563]"></i>
+              <span>Rename Project</span>
+            </button>
+
+            <div class="my-1 border-t border-[#E5E7EB]"></div>
+
+            <button
+              id="menu-delete-project-btn"
+              type="button"
+              role="menuitem"
+              class="w-full px-4 py-2.5 text-left text-sm font-semibold text-[#111827] hover:bg-[#F4F5F4] flex items-center gap-3 smooth-transition cursor-pointer"
+            >
+              <i class="fa-solid fa-trash-can w-4 text-center text-[#111827]"></i>
+              <span>Delete Project</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Project Meta & Inline Editable Start Date + Financial Summary Strip -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-4 sm:p-5 mb-5 shadow-2xs print-card">
+        <!-- Top Row: Monochrome Project Icon Badge + Status + Editable Start Date -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#E5E7EB]">
+          <div class="flex items-center gap-3">
+            <!-- Monochrome Circular Icon Badge -->
+            <div class="w-11 h-11 rounded-full bg-[#F4F5F4] border border-[#E5E7EB] flex items-center justify-center text-[#111827] shrink-0">
+              <i id="detail-project-icon" class="fa-solid fa-briefcase text-base"></i>
+            </div>
+            <div>
+              <span
+                id="detail-status-badge"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F1F5F0] text-[#111827] border border-[#C5D6BF]"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-[#7EA172]"></span>
+                Ongoing
+              </span>
+              <p class="text-xs text-[#6B7280] mt-1">
+                Project Ledger
+              </p>
+            </div>
+          </div>
+
+          <!-- Inline Editable Start Date -->
+          <div class="flex items-center gap-2 bg-[#F4F5F4] px-3 py-1.5 rounded-xl border border-[#E5E7EB]">
+            <label for="detail-start-date" class="text-xs font-semibold text-[#4B5563] whitespace-nowrap">
+              Start Date:
+            </label>
+            <input
+              id="detail-start-date"
+              type="date"
+              class="bg-transparent text-xs sm:text-sm font-semibold text-[#111827] focus:outline-none cursor-pointer"
+            />
+          </div>
+        </div>
+
+        <!-- 3-Column Financial Summary Strip -->
+        <div class="grid grid-cols-3 gap-2 sm:gap-4 pt-4">
+          <div class="bg-[#F4F5F4] rounded-xl p-2.5 sm:p-3">
+            <span class="block text-[11px] sm:text-xs font-medium text-[#6B7280]">
+              Added (+)
+            </span>
+            <span
+              id="summary-added"
+              class="block text-sm sm:text-base font-bold text-[#7EA172] tabular-nums mt-0.5 truncate"
+            >
+              +$0.00
+            </span>
+          </div>
+
+          <div class="bg-[#F4F5F4] rounded-xl p-2.5 sm:p-3">
+            <span class="block text-[11px] sm:text-xs font-medium text-[#6B7280]">
+              Spent (-)
+            </span>
+            <span
+              id="summary-spent"
+              class="block text-sm sm:text-base font-bold text-[#111827] tabular-nums mt-0.5 truncate"
+            >
+              -$0.00
+            </span>
+          </div>
+
+          <div class="bg-[#F1F5F0] border border-[#C5D6BF] rounded-xl p-2.5 sm:p-3">
+            <span class="block text-[11px] sm:text-xs font-semibold text-[#4B5563]">
+              Net Balance
+            </span>
+            <span
+              id="summary-balance"
+              class="block text-sm sm:text-base font-extrabold text-[#111827] tabular-nums mt-0.5 truncate"
+            >
+              $0.00
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================================
+           ENTRY INPUT ROW (Grocery-List Style Interactive Bar)
+           Circle Toggle (+/- in #7EA172) | Amount ($) | Description | Tick (✓)
+           ====================================================================== -->
+      <form
+        id="entry-form"
+        novalidate
+        class="no-print bg-white border border-[#E5E7EB] rounded-2xl p-3 sm:p-3.5 mb-5 shadow-xs"
+      >
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          <!-- Top / Left Group: Circle (+/-) Toggle + Amount ($) -->
+          <div class="flex items-center gap-2.5">
+            <!-- Clickable Circle in #7EA172 toggling "-" and "+" (default "-") -->
+            <button
+              id="entry-sign-toggle"
+              type="button"
+              data-sign="-"
+              aria-label="Toggle expense minus or income plus. Currently minus."
+              title="Click to switch between Expense (-) and Income (+)"
+              class="w-11 h-11 rounded-full bg-[#7EA172] hover:bg-[#6B8D60] active:scale-90 text-white font-extrabold text-xl flex items-center justify-center shrink-0 shadow-xs ring-2 ring-transparent focus:ring-[#111827] smooth-transition cursor-pointer select-none"
+            >
+              <i id="entry-sign-icon" class="fa-solid fa-minus text-base"></i>
+            </button>
+
+            <!-- Amount in $ Column -->
+            <div class="relative flex-1 sm:w-32 sm:flex-initial">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-[#4B5563] pointer-events-none">
+                $
+              </span>
+              <input
+                id="entry-amount-input"
+                type="number"
+                inputmode="decimal"
+                step="0.01"
+                min="0.01"
+                placeholder="0.00"
+                aria-label="Amount in dollars"
+                class="w-full h-11 pl-7 pr-3 rounded-xl bg-[#F4F5F4] border border-[#E5E7EB] focus:bg-white focus:border-[#7EA172] focus:outline-none text-sm font-semibold text-[#111827] tabular-nums smooth-transition"
+              />
+            </div>
+          </div>
+
+          <!-- Bottom / Right Group: Description Input + Tick (✓) Save Button -->
+          <div class="flex items-center gap-2.5 flex-1">
+            <input
+              id="entry-desc-input"
+              type="text"
+              placeholder="What was the money used for?"
+              aria-label="What was the money used for?"
+              class="flex-1 h-11 px-3.5 rounded-xl bg-[#F4F5F4] border border-[#E5E7EB] focus:bg-white focus:border-[#7EA172] focus:outline-none text-sm text-[#111827] placeholder-[#9CA3AF] smooth-transition"
+            />
+
+            <!-- Tick (✓) Save Button in #7EA172 -->
+            <button
+              id="entry-save-btn"
+              type="submit"
+              aria-label="Save item"
+              title="Save item"
+              class="w-11 h-11 rounded-xl bg-[#7EA172] hover:bg-[#6B8D60] active:scale-95 text-white flex items-center justify-center shrink-0 shadow-xs smooth-transition cursor-pointer"
+            >
+              <i class="fa-solid fa-check text-base"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Logged Items Section -->
+      <div class="flex-1 flex flex-col">
+        <div class="flex items-center justify-between mb-2.5 px-1">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+            Logged Items
+          </h2>
+          <span id="items-count-label" class="text-xs font-medium text-[#6B7280] tabular-nums">
+            0 entries
+          </span>
+        </div>
+
+        <div id="logged-items-list" class="space-y-2 flex-1" aria-live="polite">
+          <!-- Logged expense/income items are dynamically rendered here -->
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 1: CREATE NEW PROJECT MODAL
+       (Includes Project Name & Monochrome Font Awesome Icon Picker ONLY — no Start Date)
+       ========================================================================== -->
+  <div
+    id="create-modal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px]"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="create-modal-title"
+  >
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="create-modal-title" class="text-lg font-bold text-[#111827]">
+          Create New Project
+        </h2>
+        <button
+          id="close-create-modal-btn"
+          type="button"
+          aria-label="Close modal"
+          class="w-9 h-9 rounded-xl bg-[#F4F5F4] hover:bg-[#E5E7EB] flex items-center justify-center text-[#4B5563] smooth-transition cursor-pointer"
+        >
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <form id="create-project-form" novalidate>
+        <!-- Field 1: Project Name -->
+        <div class="mb-5">
+          <label for="new-project-name" class="block text-xs font-semibold uppercase tracking-wider text-[#4B5563] mb-2">
+            Project Name
+          </label>
+          <input
+            id="new-project-name"
+            type="text"
+            maxlength="60"
+            placeholder="e.g., Kitchen Renovation, Tokyo Trip"
+            class="w-full h-11 px-3.5 rounded-xl bg-[#F4F5F4] border border-[#E5E7EB] focus:bg-white focus:border-[#7EA172] focus:outline-none text-sm font-medium text-[#111827] placeholder-[#9CA3AF] smooth-transition"
+          />
+          <p id="create-name-error" class="hidden text-xs font-semibold text-[#111827] mt-1.5">
+            Please enter a project name.
+          </p>
+        </div>
+
+        <!-- Field 2: Single-Color Font Awesome Icon Picker -->
+        <div class="mb-6">
+          <span class="block text-xs font-semibold uppercase tracking-wider text-[#4B5563] mb-2.5">
+            Choose Project Icon
+          </span>
+          <div
+            id="icon-picker-grid"
+            class="grid grid-cols-4 sm:grid-cols-8 gap-2.5 justify-items-center"
+            role="radiogroup"
+            aria-label="Project Icon"
+          >
+            <!-- Circular monochrome icon buttons populated via JavaScript -->
+          </div>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="flex items-center justify-end gap-2.5">
+          <button
+            id="cancel-create-modal-btn"
+            type="button"
+            class="px-4 py-2.5 rounded-xl bg-[#F4F5F4] hover:bg-[#E5E7EB] text-sm font-semibold text-[#4B5563] smooth-transition cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-5 py-2.5 rounded-xl bg-[#7EA172] hover:bg-[#6B8D60] active:scale-[0.98] text-sm font-semibold text-white shadow-xs smooth-transition cursor-pointer"
+          >
+            Create Project
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 2: RENAME PROJECT MODAL
+       ========================================================================== -->
+  <div
+    id="rename-modal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px]"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="rename-modal-title"
+  >
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-sm p-5 sm:p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="rename-modal-title" class="text-lg font-bold text-[#111827]">
+          Rename Project
+        </h2>
+        <button
+          id="close-rename-modal-btn"
+          type="button"
+          aria-label="Close modal"
+          class="w-9 h-9 rounded-xl bg-[#F4F5F4] hover:bg-[#E5E7EB] flex items-center justify-center text-[#4B5563] smooth-transition cursor-pointer"
+        >
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <form id="rename-project-form" novalidate>
+        <div class="mb-5">
+          <label for="rename-project-input" class="block text-xs font-semibold uppercase tracking-wider text-[#4B5563] mb-2">
+            New Project Name
+          </label>
+          <input
+            id="rename-project-input"
+            type="text"
+            maxlength="60"
+            class="w-full h-11 px-3.5 rounded-xl bg-[#F4F5F4] border border-[#E5E7EB] focus:bg-white focus:border-[#7EA172] focus:outline-none text-sm font-medium text-[#111827] smooth-transition"
+          />
+          <p id="rename-name-error" class="hidden text-xs font-semibold text-[#111827] mt-1.5">
+            Project name cannot be empty.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5">
+          <button
+            id="cancel-rename-modal-btn"
+            type="button"
+            class="px-4 py-2.5 rounded-xl bg-[#F4F5F4] hover:bg-[#E5E7EB] text-sm font-semibold text-[#4B5563] smooth-transition cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-5 py-2.5 rounded-xl bg-[#7EA172] hover:bg-[#6B8D60] text-sm font-semibold text-white shadow-xs smooth-transition cursor-pointer"
+          >
+            Save Name
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 3: DELETE PROJECT CONFIRMATION MODAL (No window.confirm())
+       ========================================================================== -->
+  <div
+    id="delete-modal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px]"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-modal-title"
+  >
+    <div class="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-sm p-5 sm:p-6 shadow-xl">
+      <div class="w-11 h-11 rounded-full bg-[#F4F5F4] border border-[#E5E7EB] flex items-center justify-center text-[#111827] mb-3.5">
+        <i class="fa-solid fa-trash-can text-base"></i>
+      </div>
+      <h2 id="delete-modal-title" class="text-lg font-bold text-[#111827]">
+        Delete this project?
+      </h2>
+      <p id="delete-modal-desc" class="text-sm text-[#4B5563] mt-1.5 mb-5">
+        This will permanently remove the project and all of its logged items.
+      </p>
+
+      <div class="flex items-center justify-end gap-2.5">
+        <button
+          id="cancel-delete-modal-btn"
+          type="button"
+          class="px-4 py-2.5 rounded-xl bg-[#F4F5F4] hover:bg-[#E5E7EB] text-sm font-semibold text-[#4B5563] smooth-transition cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button
+          id="confirm-delete-project-btn"
+          type="button"
+          class="px-5 py-2.5 rounded-xl bg-[#111827] hover:bg-black text-sm font-semibold text-white shadow-xs smooth-transition cursor-pointer"
+        >
+          Delete Project
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       NON-INTRUSIVE TOAST NOTIFICATION (Replaces window.alert())
+       ========================================================================== -->
+  <div
+    id="toast"
+    role="status"
+    aria-live="polite"
+    class="no-print pointer-events-none fixed bottom-5 left-1/2 -translate-x-1/2 z-50 opacity-0 translate-y-2 smooth-transition"
+  >
+    <div class="bg-[#111827] text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 whitespace-nowrap">
+      <span class="w-2 h-2 rounded-full bg-[#7EA172]"></span>
+      <span id="toast-message">Saved</span>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       APPLICATION JAVASCRIPT
+       ========================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ----------------------------------------------------------------------
+         1. Configuration & Monochrome Font Awesome Icon Catalog
+         ---------------------------------------------------------------------- */
+      const STORAGE_KEY = 'yojna_projects_v1';
+
+      const AVAILABLE_ICONS = [
+        'fa-briefcase',
+        'fa-house',
+        'fa-hammer',
+        'fa-laptop-code',
+        'fa-car',
+        'fa-plane',
+        'fa-palette',
+        'fa-utensils',
+        'fa-leaf',
+        'fa-graduation-cap',
+        'fa-dumbbell',
+        'fa-camera',
+        'fa-wrench',
+        'fa-store',
+        'fa-chart-line',
+        'fa-gift'
+      ];
+
+      /* ----------------------------------------------------------------------
+         2. Application State
+         ---------------------------------------------------------------------- */
+      let projects = [];
+      let currentTab = 'ongoing'; // 'ongoing' | 'done'
+      let activeProjectId = null;
+      let selectedCreateIcon = AVAILABLE_ICONS[0];
+      let toastTimeout = null;
+
+      /* ----------------------------------------------------------------------
+         3. Date & Currency Utility Helpers
+         ---------------------------------------------------------------------- */
+      // Returns today's local date formatted as YYYY-MM-DD
+      function getTodayISO() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      // Formats YYYY-MM-DD into a crisp human-readable date (e.g., "Nov 17, 2026")
+      function formatDisplayDate(isoDate) {
+        if (!isoDate) return 'No date';
+        const parts = isoDate.split('-');
+        if (parts.length !== 3) return isoDate;
+        const dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        if (Number.isNaN(dateObj.getTime())) return isoDate;
+        return dateObj.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+      }
+
+      // Formats numeric dollar amounts cleanly with commas and optional explicit +/- sign
+      function formatDollar(amount, showPlusForPositive = false) {
+        const absVal = Math.abs(Number(amount) || 0);
+        const formatted = absVal.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        if (amount < 0) return `-$${formatted}`;
+        if (amount > 0 && showPlusForPositive) return `+$${formatted}`;
+        return `$${formatted}`;
+      }
+
+      // Calculates totals for a given project
+      function calculateProjectTotals(project) {
+        let added = 0;
+        let spent = 0;
+        (project.items || []).forEach((item) => {
+          const val = Number(item.amount) || 0;
+          if (item.type === '+') {
+            added += val;
+          } else {
+            spent += val;
+          }
+        });
+        return {
+          added,
+          spent,
+          balance: added - spent,
+        };
+      }
+
+      // Displays a clean toast banner at the bottom of the screen
+      function showToast(message) {
+        const toastEl = document.getElementById('toast');
+        const msgEl = document.getElementById('toast-message');
+        msgEl.textContent = message;
+
+        toastEl.classList.remove('opacity-0', 'translate-y-2');
+        toastEl.classList.add('opacity-100', 'translate-y-0');
+
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          toastEl.classList.remove('opacity-100', 'translate-y-0');
+          toastEl.classList.add('opacity-0', 'translate-y-2');
+        }, 2600);
+      }
+
+      /* ----------------------------------------------------------------------
+         4. LocalStorage Persistence & Initial Seed Data
+         ---------------------------------------------------------------------- */
+      function saveProjects() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+        } catch (err) {
+          console.error('Failed to save Yojna data to localStorage:', err);
+        }
+      }
+
+      function loadProjects() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw === null) {
+            // Seed 2 Ongoing projects and 1 Done project on very first visit
+            const today = getTodayISO();
+            projects = [
+              {
+                id: 'proj_seed_1',
+                name: 'Home Studio Setup',
+                icon: 'fa-laptop-code',
+                status: 'ongoing',
+                startDate: today,
+                items: [
+                  { id: 'item_101', type: '+', amount: 1500.00, description: 'Initial project budget' },
+                  { id: 'item_102', type: '-', amount: 420.00, description: 'Ergonomic desk & monitor arm' },
+                  { id: 'item_103', type: '-', amount: 89.50, description: 'Acoustic wall panels' },
+                ],
+              },
+              {
+                id: 'proj_seed_2',
+                name: 'Garden & Patio Refresh',
+                icon: 'fa-leaf',
+                status: 'ongoing',
+                startDate: today,
+                items: [
+                  { id: 'item_201', type: '+', amount: 600.00, description: 'Allocated savings' },
+                  { id: 'item_202', type: '-', amount: 145.75, description: 'Planter boxes & potting soil' },
+                ],
+              },
+              {
+                id: 'proj_seed_3',
+                name: 'Weekend Road Trip',
+                icon: 'fa-car',
+                status: 'done',
+                startDate: '2026-10-12',
+                items: [
+                  { id: 'item_301', type: '+', amount: 500.00, description: 'Trip fund' },
+                  { id: 'item_302', type: '-', amount: 112.40, description: 'Fuel & highway tolls' },
+                  { id: 'item_303', type: '-', amount: 230.00, description: 'Cabin overnight stay' },
+                  { id: 'item_304', type: '-', amount: 94.60, description: 'Local diner & coffee stops' },
+                ],
+              },
+            ];
+            saveProjects();
+          } else {
+            const parsed = JSON.parse(raw);
+            projects = Array.isArray(parsed) ? parsed : [];
+          }
+        } catch (err) {
+          console.error('Error loading Yojna data:', err);
+          projects = [];
+        }
+      }
+
+      /* ----------------------------------------------------------------------
+         5. Home Screen Rendering & Interactions
+         ---------------------------------------------------------------------- */
+      function renderHomeScreen() {
+        const ongoingProjects = projects.filter((p) => p.status === 'ongoing');
+        const doneProjects = projects.filter((p) => p.status === 'done');
+
+        // Update tab counts
+        const countOngoingEl = document.getElementById('count-ongoing');
+        const countDoneEl = document.getElementById('count-done');
+        const tabOngoingBtn = document.getElementById('tab-ongoing');
+        const tabDoneBtn = document.getElementById('tab-done');
+
+        countOngoingEl.textContent = ongoingProjects.length;
+        countDoneEl.textContent = doneProjects.length;
+
+        // Style active segmented tab
+        if (currentTab === 'ongoing') {
+          tabOngoingBtn.className =
+            'flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold smooth-transition cursor-pointer bg-white text-[#111827] shadow-xs';
+          tabOngoingBtn.setAttribute('aria-selected', 'true');
+          countOngoingEl.className =
+            'inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-xs font-bold bg-[#7EA172] text-white tabular-nums';
+
+          tabDoneBtn.className =
+            'flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold smooth-transition cursor-pointer text-[#4B5563] hover:text-[#111827]';
+          tabDoneBtn.setAttribute('aria-selected', 'false');
+          countDoneEl.className =
+            'inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-xs font-bold bg-[#D1D5DB] text-[#111827] tabular-nums';
+        } else {
+          tabDoneBtn.className =
+            'flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold smooth-transition cursor-pointer bg-white text-[#111827] shadow-xs';
+          tabDoneBtn.setAttribute('aria-selected', 'true');
+          countDoneEl.className =
+            'inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-xs font-bold bg-[#7EA172] text-white tabular-nums';
+
+          tabOngoingBtn.className =
+            'flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold smooth-transition cursor-pointer text-[#4B5563] hover:text-[#111827]';
+          tabOngoingBtn.setAttribute('aria-selected', 'false');
+          countOngoingEl.className =
+            'inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-xs font-bold bg-[#D1D5DB] text-[#111827] tabular-nums';
+        }
+
+        const filteredList = currentTab === 'ongoing' ? ongoingProjects : doneProjects;
+        const listContainer = document.getElementById('project-list');
+        listContainer.innerHTML = '';
+
+        if (filteredList.length === 0) {
+          const emptyWrapper = document.createElement('div');
+          emptyWrapper.className =
+            'bg-white border border-[#E5E7EB] rounded-2xl p-8 text-center flex flex-col items-center justify-center';
+          emptyWrapper.innerHTML = `
+            <div class="w-12 h-12 rounded-full bg-[#F4F5F4] flex items-center justify-center text-[#6B7280] mb-3">
+              <i class="fa-solid ${currentTab === 'ongoing' ? 'fa-folder-open' : 'fa-circle-check'} text-lg"></i>
+            </div>
+            <p class="text-sm font-semibold text-[#111827]">
+              No ${currentTab === 'ongoing' ? 'ongoing' : 'completed'} projects yet
+            </p>
+            <p class="text-xs text-[#6B7280] mt-1 max-w-xs">
+              ${
+                currentTab === 'ongoing'
+                  ? 'Tap "+ New Project" to start tracking a new plan and its expenses.'
+                  : 'Projects marked as done from their options menu will appear here.'
+              }
+            </p>
+          `;
+          listContainer.appendChild(emptyWrapper);
+          return;
+        }
+
+        filteredList.forEach((project) => {
+          const { balance } = calculateProjectTotals(project);
+          const formattedBalance = formatDollar(balance, true);
+          const balanceClass = balance > 0 ? 'text-[#7EA172] font-semibold' : 'text-[#4B5563] font-medium';
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className =
+            'w-full text-left bg-white hover:bg-[#FAFAFA] active:scale-[0.995] border border-[#E5E7EB] hover:border-[#7EA172] rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3.5 shadow-2xs smooth-transition cursor-pointer group';
+          btn.setAttribute('aria-label', `Open project ${project.name}`);
+
+          btn.innerHTML = `
+            <div class="flex items-center gap-3.5 min-w-0">
+              <div class="w-11 h-11 rounded-full bg-[#F4F5F4] group-hover:bg-[#F1F5F0] border border-[#E5E7EB] group-hover:border-[#C5D6BF] flex items-center justify-center text-[#111827] shrink-0 smooth-transition">
+                <i class="fa-solid ${escapeHtml(project.icon || 'fa-briefcase')} text-base"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="text-sm sm:text-base font-bold text-[#111827] truncate">
+                  ${escapeHtml(project.name)}
+                </div>
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[#6B7280] mt-0.5">
+                  <span>Started ${escapeHtml(formatDisplayDate(project.startDate))}</span>
+                  <span aria-hidden="true">&bull;</span>
+                  <span class="tabular-nums ${balanceClass}">${escapeHtml(formattedBalance)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-[#9CA3AF] group-hover:text-[#7EA172] group-hover:translate-x-0.5 smooth-transition shrink-0">
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </div>
+          `;
+
+          btn.addEventListener('click', () => openProjectDetail(project.id));
+          listContainer.appendChild(btn);
+        });
+      }
+
+      /* ----------------------------------------------------------------------
+         6. Screen Navigation (Home <-> Project Detail)
+         ---------------------------------------------------------------------- */
+      function showHomeScreen() {
+        activeProjectId = null;
+        closeThreeDotMenu();
+        document.getElementById('detail-screen').classList.add('hidden');
+        document.getElementById('detail-screen').classList.remove('flex');
+        document.getElementById('home-screen').classList.remove('hidden');
+        document.getElementById('home-screen').classList.add('flex');
+        renderHomeScreen();
+      }
+
+      function openProjectDetail(projectId) {
+        const project = projects.find((p) => p.id === projectId);
+        if (!project) return;
+
+        activeProjectId = projectId;
+        closeThreeDotMenu();
+
+        // Reset entry input row to default "-" state
+        setEntrySign('-');
+        document.getElementById('entry-amount-input').value = '';
+        document.getElementById('entry-desc-input').value = '';
+
+        document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('home-screen').classList.remove('flex');
+        document.getElementById('detail-screen').classList.remove('hidden');
+        document.getElementById('detail-screen').classList.add('flex');
+
+        renderProjectDetail();
+      }
+
+      /* ----------------------------------------------------------------------
+         7. Project Detail Rendering & Ledger Operations
+         ---------------------------------------------------------------------- */
+      function renderProjectDetail() {
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project) {
+          showHomeScreen();
+          return;
+        }
+
+        // Top Title & Icon
+        document.getElementById('detail-project-name').textContent = project.name;
+        const iconEl = document.getElementById('detail-project-icon');
+        iconEl.className = `fa-solid ${project.icon || 'fa-briefcase'} text-base`;
+
+        // Status Badge & Menu Toggle Label
+        const statusBadge = document.getElementById('detail-status-badge');
+        const menuStatusLabel = document.getElementById('menu-toggle-status-label');
+        const menuStatusIcon = document.getElementById('menu-toggle-status-icon');
+
+        if (project.status === 'done') {
+          statusBadge.className =
+            'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F4F5F4] text-[#4B5563] border border-[#D1D5DB]';
+          statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-[#4B5563]"></span>Done`;
+          menuStatusLabel.textContent = 'Move to Ongoing';
+          menuStatusIcon.className = 'fa-solid fa-rotate-left w-4 text-center text-[#4B5563]';
+        } else {
+          statusBadge.className =
+            'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F1F5F0] text-[#111827] border border-[#C5D6BF]';
+          statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-[#7EA172]"></span>Ongoing`;
+          menuStatusLabel.textContent = 'Mark as Done';
+          menuStatusIcon.className = 'fa-solid fa-circle-check w-4 text-center text-[#7EA172]';
+        }
+
+        // Editable Start Date Input
+        const startDateInput = document.getElementById('detail-start-date');
+        startDateInput.value = project.startDate || getTodayISO();
+
+        // Totals Summary Strip
+        const { added, spent, balance } = calculateProjectTotals(project);
+        document.getElementById('summary-added').textContent = formatDollar(added, true);
+        document.getElementById('summary-spent').textContent = spent > 0 ? `-${formatDollar(spent)}` : '$0.00';
+
+        const balanceEl = document.getElementById('summary-balance');
+        balanceEl.textContent = formatDollar(balance, true);
+        balanceEl.className =
+          balance > 0
+            ? 'block text-sm sm:text-base font-extrabold text-[#7EA172] tabular-nums mt-0.5 truncate'
+            : 'block text-sm sm:text-base font-extrabold text-[#111827] tabular-nums mt-0.5 truncate';
+
+        // Logged Items Count & List
+        const items = project.items || [];
+        document.getElementById('items-count-label').textContent =
+          `${items.length} ${items.length === 1 ? 'entry' : 'entries'}`;
+
+        const listEl = document.getElementById('logged-items-list');
+        listEl.innerHTML = '';
+
+        if (items.length === 0) {
+          const emptyCard = document.createElement('div');
+          emptyCard.className =
+            'bg-white border border-dashed border-[#D1D5DB] rounded-2xl p-7 text-center';
+          emptyCard.innerHTML = `
+            <p class="text-sm font-semibold text-[#4B5563]">No items logged yet</p>
+            <p class="text-xs text-[#9CA3AF] mt-1">
+              Use the bar above to log expenses (-) or funds added (+).
+            </p>
+          `;
+          listEl.appendChild(emptyCard);
+          return;
+        }
+
+        items.forEach((item) => {
+          const isPlus = item.type === '+';
+          const formattedItemAmount = isPlus
+            ? `+${formatDollar(item.amount)}`
+            : `-${formatDollar(item.amount)}`;
+
+          const row = document.createElement('div');
+          row.className =
+            'bg-white border border-[#E5E7EB] rounded-xl px-3.5 py-3 flex items-center justify-between gap-3 shadow-2xs print-card';
+
+          row.innerHTML = `
+            <div class="flex items-center gap-3 min-w-0">
+              <!-- Small circular +/- badge in monochrome/sage -->
+              <span
+                class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                  isPlus
+                    ? 'bg-[#7EA172] text-white'
+                    : 'bg-[#F4F5F4] text-[#111827] border border-[#D1D5DB]'
+                }"
+                aria-label="${isPlus ? 'Added' : 'Spent'}"
+              >
+                <i class="fa-solid ${isPlus ? 'fa-plus' : 'fa-minus'} text-[11px]"></i>
+              </span>
+
+              <span class="text-sm font-medium text-[#111827] break-words">
+                ${escapeHtml(item.description)}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2.5 shrink-0">
+              <span class="text-sm font-bold tabular-nums ${
+                isPlus ? 'text-[#7EA172]' : 'text-[#111827]'
+              }">
+                ${escapeHtml(formattedItemAmount)}
+              </span>
+
+              <!-- Delete Item Button -->
+              <button
+                type="button"
+                data-item-id="${escapeHtml(item.id)}"
+                aria-label="Delete item ${escapeHtml(item.description)}"
+                title="Delete item"
+                class="no-print w-8 h-8 rounded-lg text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F4F5F4] flex items-center justify-center smooth-transition cursor-pointer"
+              >
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          `;
+
+          const deleteBtn = row.querySelector('button[data-item-id]');
+          deleteBtn.addEventListener('click', () => deleteLoggedItem(item.id));
+
+          listEl.appendChild(row);
+        });
+      }
+
+      // Sets the entry row circle sign ('-' or '+')
+      function setEntrySign(sign) {
+        const toggleBtn = document.getElementById('entry-sign-toggle');
+        const iconEl = document.getElementById('entry-sign-icon');
+        const descInput = document.getElementById('entry-desc-input');
+
+        toggleBtn.dataset.sign = sign;
+        if (sign === '+') {
+          iconEl.className = 'fa-solid fa-plus text-base';
+          toggleBtn.setAttribute('aria-label', 'Toggle expense minus or income plus. Currently plus.');
+          descInput.placeholder = 'What was the money added for?';
+        } else {
+          iconEl.className = 'fa-solid fa-minus text-base';
+          toggleBtn.setAttribute('aria-label', 'Toggle expense minus or income plus. Currently minus.');
+          descInput.placeholder = 'What was the money used for?';
+        }
+      }
+
+      // Adds a new logged item to the active project
+      function handleAddEntry(e) {
+        e.preventDefault();
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project) return;
+
+        const sign = document.getElementById('entry-sign-toggle').dataset.sign || '-';
+        const amountInput = document.getElementById('entry-amount-input');
+        const descInput = document.getElementById('entry-desc-input');
+
+        const parsedAmount = parseFloat(amountInput.value);
+        const description = descInput.value.trim();
+
+        if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+          triggerShake(amountInput);
+          amountInput.focus();
+          showToast('Enter an amount greater than $0.00');
+          return;
+        }
+
+        if (!description) {
+          triggerShake(descInput);
+          descInput.focus();
+          showToast('Enter what the money was used for');
+          return;
+        }
+
+        const newItem = {
+          id: 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          type: sign,
+          amount: Math.round(parsedAmount * 100) / 100,
+          description,
+        };
+
+        project.items.unshift(newItem);
+        saveProjects();
+
+        // Reset amount and description for fast entry
+        amountInput.value = '';
+        descInput.value = '';
+        amountInput.focus();
+
+        renderProjectDetail();
+        showToast(sign === '+' ? 'Added funds logged' : 'Expense logged');
+      }
+
+      // Deletes a single logged item immediately
+      function deleteLoggedItem(itemId) {
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project) return;
+
+        project.items = project.items.filter((item) => item.id !== itemId);
+        saveProjects();
+        renderProjectDetail();
+        showToast('Item removed');
+      }
+
+      /* ----------------------------------------------------------------------
+         8. Create Project Modal & Monochrome Icon Picker
+         ---------------------------------------------------------------------- */
+      function renderIconPicker() {
+        const grid = document.getElementById('icon-picker-grid');
+        grid.innerHTML = '';
+
+        AVAILABLE_ICONS.forEach((iconClass) => {
+          const isSelected = iconClass === selectedCreateIcon;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.setAttribute('role', 'radio');
+          btn.setAttribute('aria-checked', String(isSelected));
+          btn.setAttribute('aria-label', iconClass.replace('fa-', ''));
+
+          btn.className = isSelected
+            ? 'w-11 h-11 rounded-full bg-[#7EA172] text-white flex items-center justify-center shadow-xs ring-2 ring-[#111827] smooth-transition cursor-pointer'
+            : 'w-11 h-11 rounded-full bg-[#F4F5F4] hover:bg-[#E5E7EB] text-[#111827] border border-[#E5E7EB] flex items-center justify-center smooth-transition cursor-pointer';
+
+          btn.innerHTML = `<i class="fa-solid ${iconClass} text-base"></i>`;
+          btn.addEventListener('click', () => {
+            selectedCreateIcon = iconClass;
+            renderIconPicker();
+          });
+
+          grid.appendChild(btn);
+        });
+      }
+
+      function openCreateModal() {
+        selectedCreateIcon = AVAILABLE_ICONS[0];
+        document.getElementById('new-project-name').value = '';
+        document.getElementById('create-name-error').classList.add('hidden');
+        renderIconPicker();
+
+        const modal = document.getElementById('create-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => document.getElementById('new-project-name').focus(), 40);
+      }
+
+      function closeCreateModal() {
+        document.getElementById('create-modal').classList.add('hidden');
+      }
+
+      function handleCreateProject(e) {
+        e.preventDefault();
+        const nameInput = document.getElementById('new-project-name');
+        const errorEl = document.getElementById('create-name-error');
+        const name = nameInput.value.trim();
+
+        if (!name) {
+          errorEl.classList.remove('hidden');
+          triggerShake(nameInput);
+          nameInput.focus();
+          return;
+        }
+
+        errorEl.classList.add('hidden');
+
+        // Start date is NOT shown on creation screen; automatically set to today
+        // so it can be viewed and edited on the Project Detail Screen.
+        const newProject = {
+          id: 'proj_' + Date.now(),
+          name,
+          icon: selectedCreateIcon,
+          status: 'ongoing',
+          startDate: getTodayISO(),
+          items: [],
+        };
+
+        projects.unshift(newProject);
+        currentTab = 'ongoing';
+        saveProjects();
+        closeCreateModal();
+
+        // Navigate directly into the newly created project
+        openProjectDetail(newProject.id);
+        showToast('Project created');
+      }
+
+      /* ----------------------------------------------------------------------
+         9. Three-Dot Menu Actions (Print, Share/Save PDF, Date, Status, Rename, Delete)
+         ---------------------------------------------------------------------- */
+      function toggleThreeDotMenu() {
+        const menu = document.getElementById('three-dot-menu');
+        const btn = document.getElementById('three-dot-btn');
+        const isHidden = menu.classList.contains('hidden');
+
+        if (isHidden) {
+          menu.classList.remove('hidden');
+          btn.setAttribute('aria-expanded', 'true');
+        } else {
+          closeThreeDotMenu();
+        }
+      }
+
+      function closeThreeDotMenu() {
+        const menu = document.getElementById('three-dot-menu');
+        const btn = document.getElementById('three-dot-btn');
+        menu.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+
+      // Copies a clean formatted ledger text summary using execCommand('copy')
+      function copyProjectSummaryToClipboard(project) {
+        const { added, spent, balance } = calculateProjectTotals(project);
+        const lines = [
+          `YOJNA — ${project.name.toUpperCase()}`,
+          `Status: ${project.status === 'done' ? 'Done' : 'Ongoing'} | Start Date: ${formatDisplayDate(project.startDate)}`,
+          `Added: ${formatDollar(added, true)} | Spent: -${formatDollar(spent)} | Balance: ${formatDollar(balance, true)}`,
+          `----------------------------------------`,
+        ];
+
+        if (!project.items || project.items.length === 0) {
+          lines.push('No items logged.');
+        } else {
+          project.items.forEach((item) => {
+            const signAmt = item.type === '+' ? `+${formatDollar(item.amount)}` : `-${formatDollar(item.amount)}`;
+            lines.push(`${signAmt}  —  ${item.description}`);
+          });
+        }
+
+        const text = lines.join('\n');
+        const tempArea = document.createElement('textarea');
+        tempArea.value = text;
+        tempArea.setAttribute('readonly', '');
+        tempArea.style.position = 'fixed';
+        tempArea.style.opacity = '0';
+        document.body.appendChild(tempArea);
+        tempArea.select();
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.warn('Clipboard copy fallback failed:', err);
+        }
+        document.body.removeChild(tempArea);
+      }
+
+      function handleShareOrSavePdf() {
+        closeThreeDotMenu();
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project) return;
+
+        copyProjectSummaryToClipboard(project);
+        showToast('Summary copied — select "Save as PDF" to export');
+
+        setTimeout(() => {
+          window.print();
+        }, 350);
+      }
+
+      function handleFocusStartDate() {
+        closeThreeDotMenu();
+        const dateInput = document.getElementById('detail-start-date');
+        dateInput.focus();
+        if (typeof dateInput.showPicker === 'function') {
+          try {
+            dateInput.showPicker();
+          } catch (_) {
+            // Browser requires direct user gesture on the input itself; focus already applied
+          }
+        }
+      }
+
+      function handleToggleProjectStatus() {
+        closeThreeDotMenu();
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project) return;
+
+        project.status = project.status === 'done' ? 'ongoing' : 'done';
+        saveProjects();
+        renderProjectDetail();
+        showToast(project.status === 'done' ? 'Marked as Done' : 'Moved back to Ongoing');
+      }
+
+      // Rename Modal
+      function openRenameModal() {
+        closeThreeDotMenu();
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project) return;
+
+        const input = document.getElementById('rename-project-input');
+        input.value = project.name;
+        document.getElementById('rename-name-error').classList.add('hidden');
+        document.getElementById('rename-modal').classList.remove('hidden');
+        setTimeout(() => {
+          input.focus();
+          input.select();
+        }, 40);
+      }
+
+      function closeRenameModal() {
+        document.getElementById('rename-modal').classList.add('hidden');
+      }
+
+      function handleRenameSubmit(e) {
+        e.preventDefault();
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project) return;
+
+        const input = document.getElementById('rename-project-input');
+        const errorEl = document.getElementById('rename-name-error');
+        const newName = input.value.trim();
+
+        if (!newName) {
+          errorEl.classList.remove('hidden');
+          triggerShake(input);
+          input.focus();
+          return;
+        }
+
+        project.name = newName;
+        saveProjects();
+        closeRenameModal();
+        renderProjectDetail();
+        showToast('Project renamed');
+      }
+
+      // Delete Confirmation Modal
+      function openDeleteModal() {
+        closeThreeDotMenu();
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project) return;
+
+        document.getElementById('delete-modal-desc').textContent =
+          `This will permanently remove "${project.name}" and all of its logged items.`;
+        document.getElementById('delete-modal').classList.remove('hidden');
+      }
+
+      function closeDeleteModal() {
+        document.getElementById('delete-modal').classList.add('hidden');
+      }
+
+      function confirmDeleteProject() {
+        if (!activeProjectId) return;
+        projects = projects.filter((p) => p.id !== activeProjectId);
+        saveProjects();
+        closeDeleteModal();
+        showHomeScreen();
+        showToast('Project deleted');
+      }
+
+      /* ----------------------------------------------------------------------
+         10. Utility Helpers (XSS Escaping & Shake Feedback)
+         ---------------------------------------------------------------------- */
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function triggerShake(el) {
+        el.classList.remove('animate-shake');
+        void el.offsetWidth; // Force reflow
+        el.classList.add('animate-shake');
+      }
+
+      /* ----------------------------------------------------------------------
+         11. Event Listeners & Initialization
+         ---------------------------------------------------------------------- */
+      function bindEvents() {
+        // Home Tabs
+        document.getElementById('tab-ongoing').addEventListener('click', () => {
+          currentTab = 'ongoing';
+          renderHomeScreen();
+        });
+
+        document.getElementById('tab-done').addEventListener('click', () => {
+          currentTab = 'done';
+          renderHomeScreen();
+        });
+
+        // Create Project Modal triggers
+        document.getElementById('open-create-modal-btn').addEventListener('click', openCreateModal);
+        document.getElementById('close-create-modal-btn').addEventListener('click', closeCreateModal);
+        document.getElementById('cancel-create-modal-btn').addEventListener('click', closeCreateModal);
+        document.getElementById('create-project-form').addEventListener('submit', handleCreateProject);
+
+        // Backdrop click to close modals
+        document.getElementById('create-modal').addEventListener('click', (e) => {
+          if (e.target.id === 'create-modal') closeCreateModal();
+        });
+        document.getElementById('rename-modal').addEventListener('click', (e) => {
+          if (e.target.id === 'rename-modal') closeRenameModal();
+        });
+        document.getElementById('delete-modal').addEventListener('click', (e) => {
+          if (e.target.id === 'delete-modal') closeDeleteModal();
+        });
+
+        // Detail Screen Back Navigation
+        document.getElementById('back-to-home-btn').addEventListener('click', showHomeScreen);
+
+        // Inline Editable Start Date
+        document.getElementById('detail-start-date').addEventListener('change', (e) => {
+          const project = projects.find((p) => p.id === activeProjectId);
+          if (!project) return;
+          project.startDate = e.target.value || getTodayISO();
+          saveProjects();
+          showToast('Start date updated');
+        });
+
+        // Entry Sign Toggle Circle (+/-)
+        document.getElementById('entry-sign-toggle').addEventListener('click', () => {
+          const btn = document.getElementById('entry-sign-toggle');
+          const nextSign = btn.dataset.sign === '-' ? '+' : '-';
+          setEntrySign(nextSign);
+        });
+
+        // Entry Form Submission
+        document.getElementById('entry-form').addEventListener('submit', handleAddEntry);
+
+        // Three-Dot Menu Toggle & Outside Click Close
+        document.getElementById('three-dot-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleThreeDotMenu();
+        });
+
+        document.addEventListener('click', (e) => {
+          const wrapper = document.getElementById('menu-wrapper');
+          if (wrapper && !wrapper.contains(e.target)) {
+            closeThreeDotMenu();
+          }
+        });
+
+        // Three-Dot Menu Items
+        document.getElementById('menu-print-btn').addEventListener('click', () => {
+          closeThreeDotMenu();
+          window.print();
+        });
+        document.getElementById('menu-share-pdf-btn').addEventListener('click', handleShareOrSavePdf);
+        document.getElementById('menu-edit-date-btn').addEventListener('click', handleFocusStartDate);
+        document.getElementById('menu-toggle-status-btn').addEventListener('click', handleToggleProjectStatus);
+        document.getElementById('menu-rename-btn').addEventListener('click', openRenameModal);
+        document.getElementById('menu-delete-project-btn').addEventListener('click', openDeleteModal);
+
+        // Rename Modal Controls
+        document.getElementById('close-rename-modal-btn').addEventListener('click', closeRenameModal);
+        document.getElementById('cancel-rename-modal-btn').addEventListener('click', closeRenameModal);
+        document.getElementById('rename-project-form').addEventListener('submit', handleRenameSubmit);
+
+        // Delete Confirmation Modal Controls
+        document.getElementById('cancel-delete-modal-btn').addEventListener('click', closeDeleteModal);
+        document.getElementById('confirm-delete-project-btn').addEventListener('click', confirmDeleteProject);
+
+        // Global Escape key handler for menus & modals
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeThreeDotMenu();
+            closeCreateModal();
+            closeRenameModal();
+            closeDeleteModal();
+          }
+        });
+      }
+
+      // Initialize App
+      loadProjects();
+      bindEvents();
+      renderHomeScreen();
+    })();
+  </script>
+</body>
+</html>
