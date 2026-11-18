@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#F5F6F5" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0D0E0D" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Yojna" />
@@ -210,8 +211,8 @@
            ------------------------------------------------------------------- -->
       <section id="home-view" class="pt-6 sm:pt-8">
         <!-- Top Header -->
-        <header class="flex items-center justify-between gap-3 mb-7 no-print">
-          <div class="flex items-center gap-3">
+        <header class="flex items-center justify-between gap-2 sm:gap-3 mb-7 no-print">
+          <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div class="w-9 h-9 flex items-center justify-center bg-transparent shrink-0">
               <img
                 src="logo.png"
@@ -232,9 +233,11 @@
                 <path d="M8 12h8M12 8v8" />
               </svg>
             </div>
-            <div>
+            <div class="min-w-0">
               <h1 class="text-xl sm:text-2xl font-bold tracking-tight leading-none">Yojna</h1>
-              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Project Expense Ledger</p>
+              <p class="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 mt-1 whitespace-nowrap">
+                Project Expense Ledger
+              </p>
             </div>
           </div>
 
@@ -260,13 +263,13 @@
               id="theme-toggle-btn"
               type="button"
               title="Switch theme (Auto / Dark / Light)"
-              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
             >
               <svg class="w-4 h-4 sm:w-3.5 sm:h-3.5 text-neutral-500 dark:text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="4" />
                 <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
               </svg>
-              <span id="theme-label">Auto</span>
+              <span id="theme-label" class="hidden sm:inline">Auto</span>
             </button>
 
             <!-- GitHub Cloud Sync Button -->
@@ -329,43 +332,54 @@
         </header>
 
         <!-- Summary Metrics Row -->
-        <div class="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6">
+        <div class="grid grid-cols-[1fr_1.45fr_1fr] sm:grid-cols-3 gap-2 sm:gap-4 mb-6">
           <div
-            class="rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-3.5 sm:p-4"
+            class="rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-3 sm:p-4 min-w-0"
           >
-            <p class="text-[11px] sm:text-xs font-medium text-neutral-500 dark:text-neutral-400">Ongoing</p>
-            <p id="stat-ongoing-count" class="text-lg sm:text-2xl font-bold tabular-nums mt-1">0</p>
+            <p class="text-[11px] sm:text-xs font-medium text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
+              Ongoing
+            </p>
+            <p id="stat-ongoing-count" class="text-base sm:text-2xl font-bold tabular-nums mt-1">0</p>
           </div>
           <div
-            class="rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-3.5 sm:p-4"
+            class="rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-3 sm:p-4 min-w-0"
           >
-            <p class="text-[11px] sm:text-xs font-medium text-neutral-500 dark:text-neutral-400">Active Spend</p>
-            <p id="stat-ongoing-total" class="text-lg sm:text-2xl font-bold tabular-nums text-yojna-sage mt-1">$0.00</p>
+            <p class="text-[11px] sm:text-xs font-medium text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
+              Active Spend
+            </p>
+            <p
+              id="stat-ongoing-total"
+              class="text-base sm:text-2xl font-bold tabular-nums text-yojna-sage mt-1 truncate"
+            >
+              $0.00
+            </p>
           </div>
           <div
-            class="rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-3.5 sm:p-4"
+            class="rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-3 sm:p-4 min-w-0"
           >
-            <p class="text-[11px] sm:text-xs font-medium text-neutral-500 dark:text-neutral-400">Completed</p>
-            <p id="stat-done-count" class="text-lg sm:text-2xl font-bold tabular-nums mt-1">0</p>
+            <p class="text-[11px] sm:text-xs font-medium text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
+              Completed
+            </p>
+            <p id="stat-done-count" class="text-base sm:text-2xl font-bold tabular-nums mt-1">0</p>
           </div>
         </div>
 
         <!-- Filter Tabs & Create Button -->
-        <div class="flex items-center justify-between gap-3 mb-5">
+        <div class="flex items-center justify-between gap-2 sm:gap-3 mb-5">
           <div
-            class="inline-flex p-1 rounded-xl bg-neutral-200/70 dark:bg-yojna-darkCard border border-transparent dark:border-yojna-darkBorder"
+            class="inline-flex p-1 rounded-xl bg-neutral-200/70 dark:bg-yojna-darkCard border border-transparent dark:border-yojna-darkBorder shrink-0"
           >
             <button
               id="tab-ongoing"
               type="button"
-              class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-white dark:bg-yojna-darkElevated text-neutral-900 dark:text-neutral-100 shadow-xs"
+              class="px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-white dark:bg-yojna-darkElevated text-neutral-900 dark:text-neutral-100 shadow-xs"
             >
               Ongoing (<span id="tab-ongoing-count">0</span>)
             </button>
             <button
               id="tab-done"
               type="button"
-              class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+              class="px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
             >
               Done (<span id="tab-done-count">0</span>)
             </button>
@@ -374,9 +388,9 @@
           <button
             id="new-project-btn"
             type="button"
-            class="inline-flex items-center gap-1.5 min-h-[40px] px-4 py-2 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs"
+            class="inline-flex items-center justify-center gap-1.5 min-h-[38px] sm:min-h-[40px] px-3 sm:px-4 py-2 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer shadow-xs shrink-0"
           >
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 5v14M5 12h14" />
             </svg>
             <span>New Project</span>
@@ -412,11 +426,11 @@
            ------------------------------------------------------------------- -->
       <section id="detail-view" class="hidden pt-6 sm:pt-8">
         <!-- Detail Top Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-6 no-print">
+        <div class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 mb-6 no-print">
           <button
             id="back-home-btn"
             type="button"
-            class="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-2 rounded-xl text-xs font-semibold bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+            class="inline-flex items-center gap-1.5 min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-2 rounded-xl text-xs font-semibold bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
           >
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -424,14 +438,14 @@
             <span>Projects</span>
           </button>
 
-          <div class="flex flex-wrap items-center gap-1.5">
+          <div class="flex items-center gap-1 sm:gap-1.5">
             <!-- Undo Button -->
             <button
               id="undo-btn-detail"
               type="button"
               disabled
               title="Undo last action (Ctrl+Z)"
-              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer"
+              class="inline-flex items-center justify-center gap-1.5 min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] px-2 sm:px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 7v6h6" />
@@ -445,7 +459,7 @@
               id="detail-copy-btn"
               type="button"
               title="Copy project summary"
-              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+              class="inline-flex items-center justify-center gap-1.5 min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] px-2 sm:px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
@@ -459,7 +473,7 @@
               id="detail-print-btn"
               type="button"
               title="Print or Save as PDF"
-              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+              class="inline-flex items-center justify-center gap-1.5 min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] px-2 sm:px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 6 2 18 2 18 9" />
@@ -473,7 +487,7 @@
             <button
               id="detail-toggle-status-btn"
               type="button"
-              class="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-2 rounded-xl text-xs font-semibold bg-yojna-sage/15 text-yojna-sageDark dark:text-yojna-sage hover:bg-yojna-sage/25 transition cursor-pointer"
+              class="inline-flex items-center gap-1.5 min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-yojna-sage/15 text-yojna-sageDark dark:text-yojna-sage hover:bg-yojna-sage/25 transition cursor-pointer"
             >
               <span id="detail-toggle-status-text">Mark Done</span>
             </button>
@@ -483,7 +497,7 @@
               id="detail-rename-btn"
               type="button"
               title="Edit project details"
-              class="inline-flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+              class="inline-flex items-center justify-center min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 20h9" />
@@ -496,7 +510,7 @@
               id="detail-delete-btn"
               type="button"
               title="Delete project"
-              class="inline-flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
+              class="inline-flex items-center justify-center min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6" />
@@ -566,68 +580,57 @@
           id="add-item-form"
           class="rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-3.5 sm:p-4 mb-5 no-print"
         >
-          <div class="flex flex-col md:flex-row md:items-center gap-2.5">
-            <!-- Item / Expense Name -->
-            <div class="w-full md:flex-1 min-w-0">
-              <label for="item-name-input" class="sr-only">Item name</label>
+          <!-- Entry Row: [+ / -] on Left -> [Amount] to its Right -> [Note] at Very Right -> [Add] -->
+          <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <!-- + / - Sign Toggle (Left) -->
+            <div
+              role="group"
+              aria-label="Entry type"
+              class="inline-flex items-center p-1 rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated shrink-0 min-h-[44px]"
+            >
+              <button
+                id="item-sign-plus"
+                type="button"
+                title="Add to total (+)"
+                class="w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer bg-white dark:bg-yojna-darkCard text-yojna-sageDark dark:text-yojna-sage shadow-xs"
+              >
+                +
+              </button>
+              <button
+                id="item-sign-minus"
+                type="button"
+                title="Subtract from total (-)"
+                class="w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+              >
+                &minus;
+              </button>
+            </div>
+
+            <!-- Amount (Immediately to the right of + / -) -->
+            <div class="relative flex-1 sm:flex-none sm:w-32 min-w-[110px]">
+              <label for="item-cost-input" class="sr-only">Amount</label>
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 font-mono">$</span>
               <input
-                id="item-name-input"
-                type="text"
+                id="item-cost-input"
+                type="number"
+                inputmode="decimal"
+                step="0.01"
                 required
-                placeholder="Expense or item name"
-                class="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
+                placeholder="0.00"
+                class="w-full min-h-[44px] pl-6 pr-2.5 py-2.5 text-base sm:text-sm font-mono tabular-nums rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
               />
             </div>
 
-            <!-- Entry Row: [+ / -] on Left -> [Amount] to its Right -> [Note] at Very Right -> [Add] -->
-            <div class="flex items-center gap-2 w-full md:w-auto shrink-0">
-              <!-- + / - Sign Toggle (Left) -->
-              <div
-                role="group"
-                aria-label="Entry type"
-                class="inline-flex items-center p-1 rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated shrink-0 min-h-[44px]"
-              >
-                <button
-                  id="item-sign-plus"
-                  type="button"
-                  title="Add to total (+)"
-                  class="w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer bg-white dark:bg-yojna-darkCard text-yojna-sageDark dark:text-yojna-sage shadow-xs"
-                >
-                  +
-                </button>
-                <button
-                  id="item-sign-minus"
-                  type="button"
-                  title="Subtract from total (-)"
-                  class="w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
-                >
-                  &minus;
-                </button>
-              </div>
-
-              <!-- Amount (Immediately to the right of + / -) -->
-              <div class="relative w-28 sm:w-32 shrink-0">
-                <label for="item-cost-input" class="sr-only">Amount</label>
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 font-mono">$</span>
+            <!-- Note + Add Button (Balanced full-width row on mobile, inline on desktop) -->
+            <div class="flex items-center gap-2 w-full sm:w-auto sm:flex-1 min-w-0">
+              <div class="flex-1 min-w-0">
+                <label for="item-name-input" class="sr-only">Note</label>
                 <input
-                  id="item-cost-input"
-                  type="number"
-                  inputmode="decimal"
-                  step="0.01"
-                  required
-                  placeholder="0.00"
-                  class="w-full min-h-[44px] pl-6 pr-2.5 py-2.5 text-base sm:text-sm font-mono tabular-nums rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
-                />
-              </div>
-
-              <!-- Note (At the very right, just before the Add button) -->
-              <div class="flex-1 md:w-36 min-w-0">
-                <label for="item-note-input" class="sr-only">Note</label>
-                <input
-                  id="item-note-input"
+                  id="item-name-input"
                   type="text"
+                  required
                   placeholder="Note"
-                  class="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
+                  class="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
                 />
               </div>
 
@@ -979,6 +982,7 @@
       const GH_TOKEN_KEY = 'yojna_gh_token';
       const GH_VAULT_SIG_KEY = 'yojna_unlocked_vault_sig';
       const GH_GIST_ID_KEY = 'yojna_gh_gist_id';
+      const GH_GIST_ETAG_KEY = 'yojna_gh_gist_etag';
       const GH_LAST_SYNC_KEY = 'yojna_gh_last_sync';
       const GIST_FILENAME = 'yojna-projects.json';
       const GIST_DESCRIPTION = 'Yojna Project Ledger Sync';
@@ -998,6 +1002,9 @@
       let toastTimeout = null;
       let syncDebounceTimer = null;
       let isSyncing = false;
+      let isPushInFlight = false;
+      let hasQueuedPush = false;
+      let lastPullTimestamp = 0;
 
       /* ----------------------------------------------------------------------
          2. Monochrome SVG Icon Library
@@ -1554,6 +1561,7 @@
           localStorage.removeItem(GH_TOKEN_KEY);
           localStorage.removeItem(GH_VAULT_SIG_KEY);
           localStorage.removeItem(GH_GIST_ID_KEY);
+          localStorage.removeItem(GH_GIST_ETAG_KEY);
           localStorage.removeItem(STORAGE_KEY);
         } catch (_) {}
         projects = [];
@@ -1625,13 +1633,22 @@
         if (triggerCloudSync && getStoredGitHubToken()) {
           if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
           syncDebounceTimer = setTimeout(() => {
+            syncDebounceTimer = null;
             pushProjectsToGist(true);
-          }, 600);
+          }, 150);
+        }
+      }
+
+      function flushPendingSync() {
+        if (syncDebounceTimer && getStoredGitHubToken()) {
+          clearTimeout(syncDebounceTimer);
+          syncDebounceTimer = null;
+          pushProjectsToGist(true);
         }
       }
 
       /* ----------------------------------------------------------------------
-         8. Private GitHub Gist Cloud Sync (Single Source of Truth Across Devices)
+         8. Private GitHub Gist Cloud Sync (Fast Single-Call + ETag Caching)
          ---------------------------------------------------------------------- */
       function setSyncError(message) {
         const box = document.getElementById('sync-error-box');
@@ -1642,6 +1659,18 @@
         } else {
           box.textContent = '';
           box.classList.add('hidden');
+        }
+      }
+
+      function setSyncActivityIndicator(active) {
+        const statusDot = document.getElementById('sync-status-dot');
+        if (!statusDot || !getStoredGitHubToken()) return;
+        if (active) {
+          statusDot.classList.remove('bg-yojna-sage');
+          statusDot.classList.add('bg-amber-400', 'animate-pulse');
+        } else {
+          statusDot.classList.remove('bg-amber-400', 'animate-pulse');
+          statusDot.classList.add('bg-yojna-sage');
         }
       }
 
@@ -1685,15 +1714,25 @@
       }
 
       async function githubApiRequest(url, token, options = {}) {
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          ...(options.headers || {}),
+        };
+        // Only attach Content-Type when sending a body to avoid extra CORS preflight requests on GET
+        if (options.body) {
+          headers['Content-Type'] = 'application/json';
+        }
+
         const response = await fetch(url, {
           ...options,
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/vnd.github+json',
-            'Content-Type': 'application/json',
-            ...(options.headers || {}),
-          },
+          cache: 'no-store',
+          headers,
         });
+
+        if (response.status === 304) {
+          return { notModified: true, data: null };
+        }
 
         if (!response.ok) {
           const scopes = response.headers.get('X-OAuth-Scopes') || 'none';
@@ -1707,89 +1746,112 @@
             throw new Error('GitHub rejected the token (401 Unauthorized — check if token expired or was revoked).');
           }
           if (response.status === 403 || response.status === 404) {
-            throw new Error(
+            const err = new Error(
               `GitHub Gist access denied (HTTP ${response.status}${apiMsg ? `: ${apiMsg}` : ''}). Token scopes detected: [${scopes}]. Ensure "gist" scope is checked.`
             );
+            err.status = response.status;
+            throw err;
           }
-          throw new Error(`GitHub API error (${response.status}): ${apiMsg || 'Unknown error'}`);
+          const err = new Error(`GitHub API error (${response.status}): ${apiMsg || 'Unknown error'}`);
+          err.status = response.status;
+          throw err;
         }
 
-        return response.json();
+        const etag = response.headers.get('ETag');
+        const data = await response.json();
+        return { notModified: false, data, etag };
       }
 
-      async function findOrCreateYojnaGist(token) {
+      async function findOrCreateYojnaGist(token, useEtag = false) {
         let cachedGistId = localStorage.getItem(GH_GIST_ID_KEY);
         if (cachedGistId) {
           try {
-            const existing = await githubApiRequest(`https://api.github.com/gists/${cachedGistId}`, token);
-            if (existing && existing.files && existing.files[GIST_FILENAME]) {
-              return existing;
+            const cachedEtag = useEtag ? localStorage.getItem(GH_GIST_ETAG_KEY) : null;
+            const res = await githubApiRequest(`https://api.github.com/gists/${cachedGistId}`, token, {
+              headers: cachedEtag ? { 'If-None-Match': cachedEtag } : {},
+            });
+            if (res.notModified) {
+              return { notModified: true, gist: null };
+            }
+            if (res.data && res.data.files && res.data.files[GIST_FILENAME]) {
+              if (res.etag) localStorage.setItem(GH_GIST_ETAG_KEY, res.etag);
+              return { notModified: false, gist: res.data };
             }
           } catch (_) {
             localStorage.removeItem(GH_GIST_ID_KEY);
+            localStorage.removeItem(GH_GIST_ETAG_KEY);
           }
         }
 
         // Search user's gists for an existing Yojna sync gist
-        const gists = await githubApiRequest('https://api.github.com/gists?per_page=100', token);
+        const listRes = await githubApiRequest('https://api.github.com/gists?per_page=100', token);
+        const gists = listRes.data;
         if (Array.isArray(gists)) {
           const match = gists.find(
             (g) => g.description === GIST_DESCRIPTION || (g.files && Boolean(g.files[GIST_FILENAME]))
           );
           if (match) {
             localStorage.setItem(GH_GIST_ID_KEY, match.id);
-            return await githubApiRequest(`https://api.github.com/gists/${match.id}`, token);
+            const fullRes = await githubApiRequest(`https://api.github.com/gists/${match.id}`, token);
+            if (fullRes.etag) localStorage.setItem(GH_GIST_ETAG_KEY, fullRes.etag);
+            return { notModified: false, gist: fullRes.data };
           }
         }
 
         // Create a brand-new private Gist with an empty ledger
-        const created = await githubApiRequest('https://api.github.com/gists', token, {
+        const createdRes = await githubApiRequest('https://api.github.com/gists', token, {
           method: 'POST',
           body: JSON.stringify({
             description: GIST_DESCRIPTION,
             public: false,
             files: {
               [GIST_FILENAME]: {
-                content: JSON.stringify({ updatedAt: new Date().toISOString(), projects: [] }, null, 2),
+                content: JSON.stringify({ updatedAt: new Date().toISOString(), projects: [] }),
               },
             },
           }),
         });
 
-        localStorage.setItem(GH_GIST_ID_KEY, created.id);
-        return created;
+        localStorage.setItem(GH_GIST_ID_KEY, createdRes.data.id);
+        if (createdRes.etag) localStorage.setItem(GH_GIST_ETAG_KEY, createdRes.etag);
+        return { notModified: false, gist: createdRes.data };
       }
 
-      async function pullProjectsFromGist(silent = true) {
+      async function pullProjectsFromGist(silent = true, forceFullFetch = false) {
         const token = getStoredGitHubToken();
-        if (!token || isSyncing) return;
+        if (!token || isSyncing || isPushInFlight) return;
 
         isSyncing = true;
+        lastPullTimestamp = Date.now();
+        setSyncActivityIndicator(true);
         setSyncError('');
         try {
-          const gist = await findOrCreateYojnaGist(token);
-          const fileObj = gist && gist.files && gist.files[GIST_FILENAME];
-          if (fileObj && typeof fileObj.content === 'string') {
-            const parsed = JSON.parse(fileObj.content);
-            const remoteProjects = Array.isArray(parsed)
-              ? parsed
-              : Array.isArray(parsed.projects)
-              ? parsed.projects
-              : [];
+          const useEtag = !forceFullFetch && projects.length > 0;
+          const result = await findOrCreateYojnaGist(token, useEtag);
 
-            const cleanedRemote = remoteProjects.filter((p) => !isSampleProject(p));
-            projects = cleanedRemote;
-            saveProjects(false);
+          if (!result.notModified && result.gist) {
+            const fileObj = result.gist.files && result.gist.files[GIST_FILENAME];
+            if (fileObj && typeof fileObj.content === 'string') {
+              const parsed = JSON.parse(fileObj.content);
+              const remoteProjects = Array.isArray(parsed)
+                ? parsed
+                : Array.isArray(parsed.projects)
+                ? parsed.projects
+                : [];
 
-            // If cloud Gist still contained old sample projects, overwrite it cleanly
-            if (cleanedRemote.length !== remoteProjects.length) {
-              await pushProjectsToGist(true);
+              const cleanedRemote = remoteProjects.filter((p) => !isSampleProject(p));
+              projects = cleanedRemote;
+              saveProjects(false);
+
+              if (cleanedRemote.length !== remoteProjects.length) {
+                await pushProjectsToGist(true);
+              }
             }
+            renderCurrentView();
           }
 
           localStorage.setItem(GH_LAST_SYNC_KEY, new Date().toISOString());
           updateSyncIndicatorUI();
-          renderCurrentView();
           if (!silent) showToast('Synced across devices');
         } catch (err) {
           console.error('Gist pull error:', err);
@@ -1797,36 +1859,68 @@
           if (!silent) showToast('Sync failed — open GitHub icon for details');
         } finally {
           isSyncing = false;
+          setSyncActivityIndicator(false);
         }
+      }
+
+      async function sendGistPatch(gistId, token, bodyString) {
+        const res = await githubApiRequest(`https://api.github.com/gists/${gistId}`, token, {
+          method: 'PATCH',
+          keepalive: bodyString.length < 60000,
+          body: bodyString,
+        });
+        if (res.etag) {
+          localStorage.setItem(GH_GIST_ETAG_KEY, res.etag);
+        }
+        return res.data;
       }
 
       async function pushProjectsToGist(silent = true) {
         const token = getStoredGitHubToken();
         if (!token) return;
 
-        setSyncError('');
-        try {
-          const gist = await findOrCreateYojnaGist(token);
-          const cleanPayload = projects.filter((p) => !isSampleProject(p));
+        if (isPushInFlight) {
+          hasQueuedPush = true;
+          return;
+        }
 
-          await githubApiRequest(`https://api.github.com/gists/${gist.id}`, token, {
-            method: 'PATCH',
-            body: JSON.stringify({
-              description: GIST_DESCRIPTION,
-              files: {
-                [GIST_FILENAME]: {
-                  content: JSON.stringify(
-                    {
-                      updatedAt: new Date().toISOString(),
-                      projects: cleanPayload,
-                    },
-                    null,
-                    2
-                  ),
-                },
+        isPushInFlight = true;
+        setSyncActivityIndicator(true);
+        setSyncError('');
+
+        try {
+          const cleanPayload = projects.filter((p) => !isSampleProject(p));
+          const bodyString = JSON.stringify({
+            description: GIST_DESCRIPTION,
+            files: {
+              [GIST_FILENAME]: {
+                content: JSON.stringify({
+                  updatedAt: new Date().toISOString(),
+                  projects: cleanPayload,
+                }),
               },
-            }),
+            },
           });
+
+          let gistId = localStorage.getItem(GH_GIST_ID_KEY);
+          if (gistId) {
+            try {
+              // Fast path: directly PATCH the known Gist in a single round-trip
+              await sendGistPatch(gistId, token, bodyString);
+            } catch (patchErr) {
+              if (patchErr && patchErr.status === 404) {
+                localStorage.removeItem(GH_GIST_ID_KEY);
+                localStorage.removeItem(GH_GIST_ETAG_KEY);
+                const found = await findOrCreateYojnaGist(token, false);
+                await sendGistPatch(found.gist.id, token, bodyString);
+              } else {
+                throw patchErr;
+              }
+            }
+          } else {
+            const found = await findOrCreateYojnaGist(token, false);
+            await sendGistPatch(found.gist.id, token, bodyString);
+          }
 
           localStorage.setItem(GH_LAST_SYNC_KEY, new Date().toISOString());
           updateSyncIndicatorUI();
@@ -1835,6 +1929,13 @@
           console.error('Gist push error:', err);
           setSyncError(err.message || 'Sync failed — check token scope (gist).');
           if (!silent) showToast('Sync failed — open GitHub icon for details');
+        } finally {
+          isPushInFlight = false;
+          setSyncActivityIndicator(false);
+          if (hasQueuedPush) {
+            hasQueuedPush = false;
+            pushProjectsToGist(true);
+          }
         }
       }
 
@@ -1931,9 +2032,14 @@
         const doneProjects = projects.filter((p) => p.status === 'done');
 
         const ongoingTotal = ongoingProjects.reduce((sum, p) => sum + getProjectTotal(p), 0);
+        const formattedOngoingTotal = formatCurrency(ongoingTotal);
 
         document.getElementById('stat-ongoing-count').textContent = String(ongoingProjects.length);
-        document.getElementById('stat-ongoing-total').textContent = formatCurrency(ongoingTotal);
+        const ongoingTotalEl = document.getElementById('stat-ongoing-total');
+        ongoingTotalEl.textContent = formattedOngoingTotal;
+        // Scale down slightly on mobile only for 8+ figure totals so it never clips
+        ongoingTotalEl.classList.toggle('text-sm', formattedOngoingTotal.length >= 13);
+        ongoingTotalEl.classList.toggle('text-base', formattedOngoingTotal.length < 13);
         document.getElementById('stat-done-count').textContent = String(doneProjects.length);
 
         document.getElementById('tab-ongoing-count').textContent = String(ongoingProjects.length);
@@ -1941,19 +2047,8 @@
 
         const tabOngoing = document.getElementById('tab-ongoing');
         const tabDone = document.getElementById('tab-done');
-        const activeTabClasses = [
-          'bg-white',
-          'dark:bg-yojna-darkElevated',
-          'text-neutral-900',
-          'dark:text-neutral-100',
-          'shadow-xs',
-        ];
-        const inactiveTabClasses = [
-          'text-neutral-500',
-          'dark:text-neutral-400',
-          'hover:text-neutral-800',
-          'dark:hover:text-neutral-200',
-        ];
+        const activeTabClasses = ['bg-white', 'dark:bg-yojna-darkElevated', 'text-neutral-900', 'dark:text-neutral-100', 'shadow-xs'];
+        const inactiveTabClasses = ['text-neutral-500', 'dark:text-neutral-400', 'hover:text-neutral-800', 'dark:hover:text-neutral-200'];
 
         if (currentTab === 'ongoing') {
           tabOngoing.classList.add(...activeTabClasses);
@@ -1968,32 +2063,35 @@
         }
 
         const visibleProjects = currentTab === 'ongoing' ? ongoingProjects : doneProjects;
-        const grid = document.getElementById('projects-grid');
-        const emptyState = document.getElementById('empty-state');
+        const gridEl = document.getElementById('projects-grid');
+        const emptyEl = document.getElementById('empty-state');
 
         if (visibleProjects.length === 0) {
-          grid.innerHTML = '';
-          emptyState.classList.remove('hidden');
+          gridEl.classList.add('hidden');
+          gridEl.innerHTML = '';
+          emptyEl.classList.remove('hidden');
           document.getElementById('empty-state-title').textContent =
             currentTab === 'ongoing' ? 'No ongoing projects yet' : 'No completed projects yet';
           document.getElementById('empty-state-subtitle').textContent =
             currentTab === 'ongoing'
-              ? 'Click "+ New Project" to start tracking expenses.'
-              : 'Projects you mark as Done will appear here.';
+              ? 'Create a project to start tracking expenses across your devices.'
+              : 'Completed projects will appear here once marked as done.';
           return;
         }
 
-        emptyState.classList.add('hidden');
-        grid.innerHTML = visibleProjects
+        emptyEl.classList.add('hidden');
+        gridEl.classList.remove('hidden');
+
+        gridEl.innerHTML = visibleProjects
           .map((project) => {
+            const items = Array.isArray(project.items) ? project.items : [];
             const total = getProjectTotal(project);
-            const itemCount = Array.isArray(project.items) ? project.items.length : 0;
             const isDone = project.status === 'done';
 
             return `
               <div
                 data-open-project="${escapeHtml(project.id)}"
-                class="group rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder hover:border-yojna-sage/60 dark:hover:border-yojna-sage/50 p-4 sm:p-5 transition cursor-pointer flex flex-col justify-between"
+                class="group rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder hover:border-neutral-300 dark:hover:border-neutral-600 p-4 sm:p-5 transition cursor-pointer"
               >
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex items-center gap-3 min-w-0">
@@ -2001,31 +2099,33 @@
                       ${getIconSvg(project.icon)}
                     </div>
                     <div class="min-w-0">
-                      <h3 class="text-sm sm:text-base font-bold truncate group-hover:text-yojna-sage transition">
+                      <h3 class="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-100 truncate">
                         ${escapeHtml(project.name)}
                       </h3>
-                      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                        ${formatDateDisplay(project.startDate)} • ${itemCount} ${itemCount === 1 ? 'item' : 'items'}
+                      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
+                        ${formatDateDisplay(project.startDate)} &bull; ${items.length} ${items.length === 1 ? 'item' : 'items'}
                       </p>
                     </div>
                   </div>
 
-                  <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
+                  <div class="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
                       data-toggle-project="${escapeHtml(project.id)}"
-                      title="${isDone ? 'Move back to Ongoing' : 'Mark as Done'}"
-                      class="p-1.5 rounded-lg text-neutral-400 hover:text-yojna-sage hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
+                      title="${isDone ? 'Reopen project' : 'Mark as done'}"
+                      class="p-2 rounded-lg text-neutral-400 hover:text-yojna-sage hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
                     >
-                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
+                      ${
+                        isDone
+                          ? '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>'
+                          : '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+                      }
                     </button>
                     <button
                       type="button"
                       data-delete-project="${escapeHtml(project.id)}"
                       title="Delete project"
-                      class="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
+                      class="p-2 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
                     >
                       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6" />
@@ -2035,8 +2135,8 @@
                   </div>
                 </div>
 
-                <div class="flex items-baseline justify-between mt-4 pt-3 border-t border-neutral-100 dark:border-yojna-darkBorder">
-                  <span class="text-[11px] font-medium uppercase tracking-wider text-neutral-400">
+                <div class="mt-4 pt-3 border-t border-neutral-100 dark:border-yojna-darkBorder flex items-center justify-between gap-2">
+                  <span class="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
                     ${isDone ? 'Final Total' : 'Running Total'}
                   </span>
                   <span class="text-base sm:text-lg font-bold tabular-nums text-neutral-900 dark:text-neutral-100">
@@ -2051,95 +2151,95 @@
 
       function renderProjectDetail() {
         const project = projects.find((p) => p.id === activeProjectId);
-        if (!project) return;
+        if (!project) {
+          activeProjectId = null;
+          renderCurrentView();
+          return;
+        }
+
+        const items = Array.isArray(project.items) ? project.items : [];
+        const total = getProjectTotal(project);
 
         document.getElementById('detail-project-icon').innerHTML = getIconSvg(project.icon);
         document.getElementById('detail-project-title').textContent = project.name;
         document.getElementById('detail-start-date-text').textContent = formatDateDisplay(project.startDate);
         document.getElementById('detail-start-date-input').value = project.startDate || getTodayISO();
-
-        const items = Array.isArray(project.items) ? project.items : [];
         document.getElementById('detail-item-count').textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'}`;
-        document.getElementById('detail-total-amount').textContent = formatCurrency(getProjectTotal(project));
+        document.getElementById('detail-total-amount').textContent = formatCurrency(total);
         document.getElementById('detail-toggle-status-text').textContent =
-          project.status === 'done' ? 'Reopen Project' : 'Mark Done';
+          project.status === 'done' ? 'Reopen' : 'Mark Done';
 
-        const listEl = document.getElementById('items-list');
-        const emptyEl = document.getElementById('items-empty-state');
+        const itemsList = document.getElementById('items-list');
+        const itemsEmpty = document.getElementById('items-empty-state');
 
         if (items.length === 0) {
-          listEl.innerHTML = '';
-          emptyEl.classList.remove('hidden');
+          itemsEmpty.classList.remove('hidden');
+          itemsList.classList.add('hidden');
+          itemsList.innerHTML = '';
           return;
         }
 
-        emptyEl.classList.add('hidden');
-        listEl.innerHTML = items
+        itemsEmpty.classList.add('hidden');
+        itemsList.classList.remove('hidden');
+
+        itemsList.innerHTML = items
           .map((item) => {
             const itemSign = item.sign === '-' ? '-' : '+';
             const absCost = Math.abs(Number(item.cost) || 0);
 
             if (editingItemId === item.id) {
               return `
-                <div class="p-3.5 sm:px-5 bg-neutral-50 dark:bg-yojna-darkElevated/60 flex flex-col gap-2">
+                <div class="p-3.5 sm:px-5 bg-neutral-50 dark:bg-yojna-darkElevated/60 flex flex-wrap sm:flex-nowrap items-center gap-2">
+                  <div class="inline-flex p-0.5 rounded-lg bg-neutral-200/80 dark:bg-yojna-darkCard shrink-0">
+                    <button
+                      type="button"
+                      data-edit-sign="+"
+                      class="w-8 h-8 rounded-md text-xs font-bold cursor-pointer ${
+                        editingItemSign === '+'
+                          ? 'bg-white dark:bg-yojna-darkElevated text-yojna-sageDark dark:text-yojna-sage shadow-xs'
+                          : 'text-neutral-500'
+                      }"
+                    >+</button>
+                    <button
+                      type="button"
+                      data-edit-sign="-"
+                      class="w-8 h-8 rounded-md text-xs font-bold cursor-pointer ${
+                        editingItemSign === '-'
+                          ? 'bg-white dark:bg-yojna-darkElevated text-red-600 dark:text-red-400 shadow-xs'
+                          : 'text-neutral-500'
+                      }"
+                    >&minus;</button>
+                  </div>
                   <input
-                    id="edit-item-name-${escapeHtml(item.id)}"
-                    type="text"
-                    value="${escapeHtml(item.name)}"
-                    class="w-full min-h-[42px] px-3 py-1.5 text-base sm:text-sm rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
+                    id="edit-item-cost-${escapeHtml(item.id)}"
+                    type="number"
+                    inputmode="decimal"
+                    step="0.01"
+                    value="${absCost}"
+                    class="flex-1 sm:flex-none sm:w-28 min-w-[100px] min-h-[40px] px-3 py-1.5 text-base sm:text-sm font-mono tabular-nums rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
                   />
-                  <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
-                    <div class="inline-flex p-0.5 rounded-lg bg-neutral-200/80 dark:bg-yojna-darkCard shrink-0">
-                      <button
-                        type="button"
-                        data-edit-sign="+"
-                        class="w-8 h-8 rounded-md text-xs font-bold cursor-pointer ${
-                          editingItemSign === '+'
-                            ? 'bg-white dark:bg-yojna-darkElevated text-yojna-sageDark dark:text-yojna-sage shadow-xs'
-                            : 'text-neutral-500'
-                        }"
-                      >+</button>
-                      <button
-                        type="button"
-                        data-edit-sign="-"
-                        class="w-8 h-8 rounded-md text-xs font-bold cursor-pointer ${
-                          editingItemSign === '-'
-                            ? 'bg-white dark:bg-yojna-darkElevated text-red-600 dark:text-red-400 shadow-xs'
-                            : 'text-neutral-500'
-                        }"
-                      >&minus;</button>
-                    </div>
+                  <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1 min-w-0">
                     <input
-                      id="edit-item-cost-${escapeHtml(item.id)}"
-                      type="number"
-                      inputmode="decimal"
-                      step="0.01"
-                      value="${absCost}"
-                      class="w-28 min-h-[40px] px-3 py-1.5 text-base sm:text-sm font-mono tabular-nums rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
-                    />
-                    <input
-                      id="edit-item-note-${escapeHtml(item.id)}"
+                      id="edit-item-name-${escapeHtml(item.id)}"
                       type="text"
-                      value="${escapeHtml(item.note || '')}"
+                      value="${escapeHtml(item.name)}"
                       placeholder="Note"
                       class="flex-1 min-w-0 min-h-[40px] px-3 py-1.5 text-base sm:text-sm rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
                     />
-                    <div class="flex items-center justify-end gap-1.5 ml-auto">
-                      <button
-                        type="button"
-                        data-save-edit-item="${escapeHtml(item.id)}"
-                        class="min-h-[40px] px-3 py-1.5 rounded-lg bg-yojna-sage text-white text-xs font-semibold cursor-pointer"
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        data-cancel-edit-item="true"
-                        class="min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      data-save-edit-item="${escapeHtml(item.id)}"
+                      class="min-h-[40px] px-3 py-1.5 rounded-lg bg-yojna-sage text-white text-xs font-semibold cursor-pointer shrink-0"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      data-cancel-edit-item="true"
+                      class="min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer shrink-0"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
               `;
@@ -2372,11 +2472,9 @@
 
         const nameInput = document.getElementById('item-name-input');
         const costInput = document.getElementById('item-cost-input');
-        const noteInput = document.getElementById('item-note-input');
 
         const name = nameInput.value.trim();
         const rawCost = parseFloat(costInput.value);
-        const note = noteInput.value.trim();
 
         if (!name || isNaN(rawCost)) return;
 
@@ -2391,14 +2489,13 @@
           name,
           sign: finalSign,
           cost: absCost,
-          note,
+          note: '',
         });
 
         nameInput.value = '';
         costInput.value = '';
-        noteInput.value = '';
         setItemSign('+');
-        nameInput.focus();
+        costInput.focus();
 
         saveProjects(true);
         renderProjectDetail();
@@ -2672,14 +2769,12 @@
 
             const newName = document.getElementById(`edit-item-name-${itemId}`).value.trim();
             const rawNewCost = parseFloat(document.getElementById(`edit-item-cost-${itemId}`).value);
-            const newNote = document.getElementById(`edit-item-note-${itemId}`).value.trim();
             if (!newName || isNaN(rawNewCost)) return;
 
             recordUndoSnapshot(`Edit "${item.name}"`);
             item.name = newName;
             item.sign = rawNewCost < 0 ? '-' : editingItemSign;
             item.cost = Math.round(Math.abs(rawNewCost) * 100) / 100;
-            item.note = newNote;
             editingItemId = null;
 
             saveProjects(true);
@@ -2720,7 +2815,7 @@
         document.getElementById('close-sync-modal').addEventListener('click', closeAllModals);
 
         document.getElementById('sync-now-btn').addEventListener('click', async () => {
-          await pullProjectsFromGist(false);
+          await pullProjectsFromGist(false, true);
         });
 
         document.getElementById('lock-device-btn').addEventListener('click', lockCurrentDevice);
@@ -2730,30 +2825,41 @@
           const tokenVal = document.getElementById('manual-token-input').value.trim();
           if (!tokenVal) return;
           localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(GH_GIST_ETAG_KEY);
           localStorage.setItem(GH_TOKEN_KEY, tokenVal);
           updateSyncIndicatorUI();
-          await pullProjectsFromGist(false);
+          await pullProjectsFromGist(false, true);
         });
 
         document.getElementById('manual-sync-now-btn').addEventListener('click', async () => {
-          await pullProjectsFromGist(false);
+          await pullProjectsFromGist(false, true);
         });
 
         document.getElementById('disconnect-manual-sync-btn').addEventListener('click', () => {
           localStorage.removeItem(GH_TOKEN_KEY);
           localStorage.removeItem(GH_GIST_ID_KEY);
+          localStorage.removeItem(GH_GIST_ETAG_KEY);
           localStorage.removeItem(GH_LAST_SYNC_KEY);
           setSyncError('');
           updateSyncIndicatorUI();
           showToast('Cloud sync disconnected');
         });
 
-        // Auto-pull latest Gist changes when returning to tab/app on mobile or desktop
+        // Flush pending saves immediately on hide & auto-pull latest changes when returning
         document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible' && isDeviceUnlockedForVault() && getStoredGitHubToken()) {
-            pullProjectsFromGist(true);
+          if (document.visibilityState === 'hidden') {
+            flushPendingSync();
+          } else if (
+            document.visibilityState === 'visible' &&
+            isDeviceUnlockedForVault() &&
+            getStoredGitHubToken() &&
+            Date.now() - lastPullTimestamp > 2500
+          ) {
+            pullProjectsFromGist(true, false);
           }
         });
+
+        window.addEventListener('pagehide', flushPendingSync);
       }
 
       /* ----------------------------------------------------------------------
