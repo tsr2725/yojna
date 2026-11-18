@@ -2,7 +2,7 @@
 <html lang="en" class="antialiased">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#F5F6F5" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0D0E0D" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -60,6 +60,8 @@
       body {
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         -webkit-tap-highlight-color: transparent;
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
       }
 
       .tabular-nums {
@@ -179,7 +181,7 @@
               autocomplete="current-password"
               required
               placeholder="Enter passphrase"
-              class="w-full px-4 py-3 text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-neutral-200 dark:border-yojna-darkBorder text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-yojna-sage/50 focus:border-yojna-sage transition"
+              class="w-full px-4 py-3 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-neutral-200 dark:border-yojna-darkBorder text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-yojna-sage/50 focus:border-yojna-sage transition"
             />
           </div>
 
@@ -237,16 +239,16 @@
           </div>
 
           <!-- Header Utility Controls -->
-          <div class="flex items-center gap-1.5 sm:gap-2">
+          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <!-- Undo Button -->
             <button
               id="undo-btn-home"
               type="button"
               disabled
               title="Undo last action (Ctrl+Z)"
-              class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer"
+              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer"
             >
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="w-4 h-4 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 7v6h6" />
                 <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
               </svg>
@@ -258,9 +260,9 @@
               id="theme-toggle-btn"
               type="button"
               title="Switch theme (Auto / Dark / Light)"
-              class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
             >
-              <svg class="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="w-4 h-4 sm:w-3.5 sm:h-3.5 text-neutral-500 dark:text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="4" />
                 <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
               </svg>
@@ -272,7 +274,7 @@
               id="sync-modal-btn"
               type="button"
               title="Cloud Sync Status"
-              class="relative inline-flex items-center justify-center p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+              class="relative inline-flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
             >
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path
@@ -293,7 +295,7 @@
                 id="more-menu-btn"
                 type="button"
                 title="Backup & Restore"
-                class="inline-flex items-center justify-center p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+                class="inline-flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
               >
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="1" />
@@ -372,7 +374,7 @@
           <button
             id="new-project-btn"
             type="button"
-            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs"
+            class="inline-flex items-center gap-1.5 min-h-[40px] px-4 py-2 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs"
           >
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 5v14M5 12h14" />
@@ -414,7 +416,7 @@
           <button
             id="back-home-btn"
             type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+            class="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-2 rounded-xl text-xs font-semibold bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
           >
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -429,7 +431,7 @@
               type="button"
               disabled
               title="Undo last action (Ctrl+Z)"
-              class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer"
+              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 7v6h6" />
@@ -443,7 +445,7 @@
               id="detail-copy-btn"
               type="button"
               title="Copy project summary"
-              class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
@@ -457,7 +459,7 @@
               id="detail-print-btn"
               type="button"
               title="Print or Save as PDF"
-              class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+              class="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 py-2 rounded-xl text-xs font-medium bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 6 2 18 2 18 9" />
@@ -471,7 +473,7 @@
             <button
               id="detail-toggle-status-btn"
               type="button"
-              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-yojna-sage/15 text-yojna-sageDark dark:text-yojna-sage hover:bg-yojna-sage/25 transition cursor-pointer"
+              class="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-2 rounded-xl text-xs font-semibold bg-yojna-sage/15 text-yojna-sageDark dark:text-yojna-sage hover:bg-yojna-sage/25 transition cursor-pointer"
             >
               <span id="detail-toggle-status-text">Mark Done</span>
             </button>
@@ -481,7 +483,7 @@
               id="detail-rename-btn"
               type="button"
               title="Edit project details"
-              class="inline-flex items-center justify-center p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
+              class="inline-flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600 transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 20h9" />
@@ -494,7 +496,7 @@
               id="detail-delete-btn"
               type="button"
               title="Delete project"
-              class="inline-flex items-center justify-center p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
+              class="inline-flex items-center justify-center min-h-[40px] min-w-[40px] p-2 rounded-xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6" />
@@ -562,47 +564,77 @@
         <!-- Add Expense Item Form -->
         <form
           id="add-item-form"
-          class="rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-4 mb-5 no-print"
+          class="rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-3.5 sm:p-4 mb-5 no-print"
         >
-          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-            <div class="sm:col-span-5">
+          <div class="flex flex-col md:flex-row md:items-center gap-2.5">
+            <!-- Item / Expense Name -->
+            <div class="w-full md:flex-1 min-w-0">
               <label for="item-name-input" class="sr-only">Item name</label>
               <input
                 id="item-name-input"
                 type="text"
                 required
                 placeholder="Expense or item name"
-                class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
+                class="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
               />
             </div>
-            <div class="sm:col-span-3">
-              <label for="item-cost-input" class="sr-only">Cost</label>
-              <div class="relative">
-                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-neutral-400 font-mono">$</span>
+
+            <!-- Entry Row: [+ / -] on Left -> [Amount] to its Right -> [Note] at Very Right -> [Add] -->
+            <div class="flex items-center gap-2 w-full md:w-auto shrink-0">
+              <!-- + / - Sign Toggle (Left) -->
+              <div
+                role="group"
+                aria-label="Entry type"
+                class="inline-flex items-center p-1 rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated shrink-0 min-h-[44px]"
+              >
+                <button
+                  id="item-sign-plus"
+                  type="button"
+                  title="Add to total (+)"
+                  class="w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer bg-white dark:bg-yojna-darkCard text-yojna-sageDark dark:text-yojna-sage shadow-xs"
+                >
+                  +
+                </button>
+                <button
+                  id="item-sign-minus"
+                  type="button"
+                  title="Subtract from total (-)"
+                  class="w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+                >
+                  &minus;
+                </button>
+              </div>
+
+              <!-- Amount (Immediately to the right of + / -) -->
+              <div class="relative w-28 sm:w-32 shrink-0">
+                <label for="item-cost-input" class="sr-only">Amount</label>
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 font-mono">$</span>
                 <input
                   id="item-cost-input"
                   type="number"
+                  inputmode="decimal"
                   step="0.01"
-                  min="0"
                   required
                   placeholder="0.00"
-                  class="w-full pl-7 pr-3.5 py-2.5 text-sm font-mono tabular-nums rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
+                  class="w-full min-h-[44px] pl-6 pr-2.5 py-2.5 text-base sm:text-sm font-mono tabular-nums rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
                 />
               </div>
-            </div>
-            <div class="sm:col-span-2">
-              <label for="item-note-input" class="sr-only">Note</label>
-              <input
-                id="item-note-input"
-                type="text"
-                placeholder="Note (opt.)"
-                class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
-              />
-            </div>
-            <div class="sm:col-span-2">
+
+              <!-- Note (At the very right, just before the Add button) -->
+              <div class="flex-1 md:w-36 min-w-0">
+                <label for="item-note-input" class="sr-only">Note</label>
+                <input
+                  id="item-note-input"
+                  type="text"
+                  placeholder="Note"
+                  class="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage focus:bg-white dark:focus:bg-yojna-darkCard text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none transition"
+                />
+              </div>
+
+              <!-- Add Button -->
               <button
                 type="submit"
-                class="w-full h-full py-2.5 px-4 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-sm font-semibold transition cursor-pointer"
+                class="min-h-[44px] px-4 py-2.5 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-sm font-semibold transition cursor-pointer shrink-0"
               >
                 Add
               </button>
@@ -633,14 +665,14 @@
       class="hidden fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/45 backdrop-blur-[2px]"
     >
       <div
-        class="w-full max-w-md rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-6 shadow-xl"
+        class="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-5 sm:p-6 shadow-xl"
       >
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-base font-bold">New Project</h3>
           <button
             id="close-create-modal"
             type="button"
-            class="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 cursor-pointer"
+            class="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 cursor-pointer"
           >
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6L6 18M6 6l12 12" />
@@ -658,7 +690,7 @@
               type="text"
               required
               placeholder="e.g., Kitchen Renovation"
-              class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage text-neutral-900 dark:text-neutral-100 focus:outline-none"
+              class="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage text-neutral-900 dark:text-neutral-100 focus:outline-none"
             />
           </div>
 
@@ -670,26 +702,26 @@
               id="create-project-date"
               type="date"
               required
-              class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage text-neutral-900 dark:text-neutral-100 focus:outline-none"
+              class="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage text-neutral-900 dark:text-neutral-100 focus:outline-none"
             />
           </div>
 
           <div>
             <span class="block text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-1.5">Icon</span>
-            <div id="create-icon-grid" class="grid grid-cols-8 gap-1.5"></div>
+            <div id="create-icon-grid" class="grid grid-cols-6 sm:grid-cols-8 gap-1.5 max-h-48 overflow-y-auto pr-0.5"></div>
           </div>
 
           <div class="flex items-center justify-end gap-2 pt-2">
             <button
               id="cancel-create-modal"
               type="button"
-              class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
+              class="min-h-[40px] px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              class="px-4 py-2 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-xs font-semibold transition cursor-pointer"
+              class="min-h-[40px] px-4 py-2 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-xs font-semibold transition cursor-pointer"
             >
               Create Project
             </button>
@@ -704,14 +736,14 @@
       class="hidden fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/45 backdrop-blur-[2px]"
     >
       <div
-        class="w-full max-w-md rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-6 shadow-xl"
+        class="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder p-5 sm:p-6 shadow-xl"
       >
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-base font-bold">Edit Project</h3>
           <button
             id="close-rename-modal"
             type="button"
-            class="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 cursor-pointer"
+            class="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 cursor-pointer"
           >
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6L6 18M6 6l12 12" />
@@ -728,7 +760,7 @@
               id="rename-project-name"
               type="text"
               required
-              class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage text-neutral-900 dark:text-neutral-100 focus:outline-none"
+              class="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage text-neutral-900 dark:text-neutral-100 focus:outline-none"
             />
           </div>
 
@@ -740,26 +772,26 @@
               id="rename-project-date"
               type="date"
               required
-              class="w-full px-3.5 py-2.5 text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage text-neutral-900 dark:text-neutral-100 focus:outline-none"
+              class="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated border border-transparent focus:border-yojna-sage text-neutral-900 dark:text-neutral-100 focus:outline-none"
             />
           </div>
 
           <div>
             <span class="block text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-1.5">Icon</span>
-            <div id="rename-icon-grid" class="grid grid-cols-8 gap-1.5"></div>
+            <div id="rename-icon-grid" class="grid grid-cols-6 sm:grid-cols-8 gap-1.5 max-h-48 overflow-y-auto pr-0.5"></div>
           </div>
 
           <div class="flex items-center justify-end gap-2 pt-2">
             <button
               id="cancel-rename-modal"
               type="button"
-              class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
+              class="min-h-[40px] px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              class="px-4 py-2 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-xs font-semibold transition cursor-pointer"
+              class="min-h-[40px] px-4 py-2 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-xs font-semibold transition cursor-pointer"
             >
               Save Changes
             </button>
@@ -956,6 +988,8 @@
       let activeProjectId = null;
       let selectedCreateIcon = 'folder';
       let selectedRenameIcon = 'folder';
+      let selectedItemSign = '+';
+      let editingItemSign = '+';
       let pendingDeleteProjectId = null;
       let editingItemId = null;
 
@@ -1048,6 +1082,206 @@
           id: 'calendar',
           label: 'Schedule',
           svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+        },
+        {
+          id: 'wallet',
+          label: 'Finance',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',
+        },
+        {
+          id: 'graduation',
+          label: 'Education',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>',
+        },
+        {
+          id: 'dumbbell',
+          label: 'Fitness',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>',
+        },
+        {
+          id: 'music',
+          label: 'Music',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+        },
+        {
+          id: 'palette',
+          label: 'Art & Design',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>',
+        },
+        {
+          id: 'sprout',
+          label: 'Garden',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>',
+        },
+        {
+          id: 'paw',
+          label: 'Pets',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>',
+        },
+        {
+          id: 'coffee',
+          label: 'Cafe',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>',
+        },
+        {
+          id: 'smartphone',
+          label: 'Mobile',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+        },
+        {
+          id: 'globe',
+          label: 'Global',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+        },
+        {
+          id: 'bike',
+          label: 'Cycling',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>',
+        },
+        {
+          id: 'trophy',
+          label: 'Sports',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
+        },
+        {
+          id: 'shield',
+          label: 'Insurance',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+        },
+        {
+          id: 'truck',
+          label: 'Moving',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+        },
+        {
+          id: 'scissors',
+          label: 'Craft',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>',
+        },
+        {
+          id: 'sun',
+          label: 'Holiday',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
+        },
+        {
+          id: 'hammer',
+          label: 'Renovation',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 11.7-1.25-1.25c-.6-.6-.93-1.4-.93-2.25v-.86L16.01 4.6a5.56 5.56 0 0 0-3.94-1.64H9l.92.82A6.18 6.18 0 0 1 12 8.4v1.56l2 2h2.47l2.26 1.91"/></svg>',
+        },
+        {
+          id: 'key',
+          label: 'Property',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>',
+        },
+        {
+          id: 'building',
+          label: 'Office',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>',
+        },
+        {
+          id: 'package',
+          label: 'Shipping',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
+        },
+        {
+          id: 'creditcard',
+          label: 'Bills',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
+        },
+        {
+          id: 'coins',
+          label: 'Savings',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>',
+        },
+        {
+          id: 'tag',
+          label: 'Deals',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>',
+        },
+        {
+          id: 'lightbulb',
+          label: 'Ideas',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>',
+        },
+        {
+          id: 'flame',
+          label: 'Energy',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+        },
+        {
+          id: 'droplet',
+          label: 'Utilities',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
+        },
+        {
+          id: 'zap',
+          label: 'Electric',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+        },
+        {
+          id: 'wifi',
+          label: 'Internet',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>',
+        },
+        {
+          id: 'headphones',
+          label: 'Audio',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>',
+        },
+        {
+          id: 'tv',
+          label: 'Entertainment',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>',
+        },
+        {
+          id: 'compass',
+          label: 'Adventure',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
+        },
+        {
+          id: 'mappin',
+          label: 'Location',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+        },
+        {
+          id: 'anchor',
+          label: 'Marine',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>',
+        },
+        {
+          id: 'umbrella',
+          label: 'Weather',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a10.06 10.06 0 0 0-20 0Z"/><path d="M12 12v8a2 2 0 0 0 4 0"/><path d="M12 2v1"/></svg>',
+        },
+        {
+          id: 'watch',
+          label: 'Time',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><polyline points="12 10 12 12 13 13"/><path d="m16.13 7.66-.81-4.05a2 2 0 0 0-2-1.61h-2.68a2 2 0 0 0-2 1.61l-.78 4.05"/><path d="m7.88 16.36.8 4a2 2 0 0 0 2 1.61h2.72a2 2 0 0 0 2-1.61l.81-4.05"/></svg>',
+        },
+        {
+          id: 'star',
+          label: 'Priority',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+        },
+        {
+          id: 'flag',
+          label: 'Milestone',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>',
+        },
+        {
+          id: 'rocket',
+          label: 'Launch',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
+        },
+        {
+          id: 'leaf',
+          label: 'Eco',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>',
+        },
+        {
+          id: 'landmark',
+          label: 'Bank & Tax',
+          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>',
         },
       ];
 
@@ -1650,9 +1884,32 @@
       /* ----------------------------------------------------------------------
          10. Rendering: Home View & Project Detail View
          ---------------------------------------------------------------------- */
+      function setItemSign(sign) {
+        selectedItemSign = sign === '-' ? '-' : '+';
+        const plusBtn = document.getElementById('item-sign-plus');
+        const minusBtn = document.getElementById('item-sign-minus');
+        if (!plusBtn || !minusBtn) return;
+
+        const inactiveClasses = ['text-neutral-500', 'dark:text-neutral-400', 'hover:text-neutral-800', 'dark:hover:text-neutral-200'];
+        if (selectedItemSign === '+') {
+          plusBtn.classList.add('bg-white', 'dark:bg-yojna-darkCard', 'text-yojna-sageDark', 'dark:text-yojna-sage', 'shadow-xs');
+          plusBtn.classList.remove(...inactiveClasses);
+          minusBtn.classList.remove('bg-white', 'dark:bg-yojna-darkCard', 'text-red-600', 'dark:text-red-400', 'shadow-xs');
+          minusBtn.classList.add(...inactiveClasses);
+        } else {
+          minusBtn.classList.add('bg-white', 'dark:bg-yojna-darkCard', 'text-red-600', 'dark:text-red-400', 'shadow-xs');
+          minusBtn.classList.remove(...inactiveClasses);
+          plusBtn.classList.remove('bg-white', 'dark:bg-yojna-darkCard', 'text-yojna-sageDark', 'dark:text-yojna-sage', 'shadow-xs');
+          plusBtn.classList.add(...inactiveClasses);
+        }
+      }
+
       function getProjectTotal(project) {
         if (!project || !Array.isArray(project.items)) return 0;
-        return project.items.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+        return project.items.reduce((sum, item) => {
+          const val = Math.abs(Number(item.cost) || 0);
+          return sum + (item.sign === '-' ? -val : val);
+        }, 0);
       }
 
       function renderCurrentView() {
@@ -1819,45 +2076,70 @@
         emptyEl.classList.add('hidden');
         listEl.innerHTML = items
           .map((item) => {
+            const itemSign = item.sign === '-' ? '-' : '+';
+            const absCost = Math.abs(Number(item.cost) || 0);
+
             if (editingItemId === item.id) {
               return `
-                <div class="p-3.5 sm:px-5 bg-neutral-50 dark:bg-yojna-darkElevated/60 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div class="p-3.5 sm:px-5 bg-neutral-50 dark:bg-yojna-darkElevated/60 flex flex-col gap-2">
                   <input
                     id="edit-item-name-${escapeHtml(item.id)}"
                     type="text"
                     value="${escapeHtml(item.name)}"
-                    class="flex-1 px-3 py-1.5 text-sm rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
+                    class="w-full min-h-[42px] px-3 py-1.5 text-base sm:text-sm rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
                   />
-                  <input
-                    id="edit-item-cost-${escapeHtml(item.id)}"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value="${Number(item.cost) || 0}"
-                    class="w-full sm:w-28 px-3 py-1.5 text-sm font-mono tabular-nums rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
-                  />
-                  <input
-                    id="edit-item-note-${escapeHtml(item.id)}"
-                    type="text"
-                    value="${escapeHtml(item.note || '')}"
-                    placeholder="Note"
-                    class="w-full sm:w-36 px-3 py-1.5 text-sm rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
-                  />
-                  <div class="flex items-center justify-end gap-1.5">
-                    <button
-                      type="button"
-                      data-save-edit-item="${escapeHtml(item.id)}"
-                      class="px-3 py-1.5 rounded-lg bg-yojna-sage text-white text-xs font-semibold cursor-pointer"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      data-cancel-edit-item="true"
-                      class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
-                    >
-                      Cancel
-                    </button>
+                  <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                    <div class="inline-flex p-0.5 rounded-lg bg-neutral-200/80 dark:bg-yojna-darkCard shrink-0">
+                      <button
+                        type="button"
+                        data-edit-sign="+"
+                        class="w-8 h-8 rounded-md text-xs font-bold cursor-pointer ${
+                          editingItemSign === '+'
+                            ? 'bg-white dark:bg-yojna-darkElevated text-yojna-sageDark dark:text-yojna-sage shadow-xs'
+                            : 'text-neutral-500'
+                        }"
+                      >+</button>
+                      <button
+                        type="button"
+                        data-edit-sign="-"
+                        class="w-8 h-8 rounded-md text-xs font-bold cursor-pointer ${
+                          editingItemSign === '-'
+                            ? 'bg-white dark:bg-yojna-darkElevated text-red-600 dark:text-red-400 shadow-xs'
+                            : 'text-neutral-500'
+                        }"
+                      >&minus;</button>
+                    </div>
+                    <input
+                      id="edit-item-cost-${escapeHtml(item.id)}"
+                      type="number"
+                      inputmode="decimal"
+                      step="0.01"
+                      value="${absCost}"
+                      class="w-28 min-h-[40px] px-3 py-1.5 text-base sm:text-sm font-mono tabular-nums rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
+                    />
+                    <input
+                      id="edit-item-note-${escapeHtml(item.id)}"
+                      type="text"
+                      value="${escapeHtml(item.note || '')}"
+                      placeholder="Note"
+                      class="flex-1 min-w-0 min-h-[40px] px-3 py-1.5 text-base sm:text-sm rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
+                    />
+                    <div class="flex items-center justify-end gap-1.5 ml-auto">
+                      <button
+                        type="button"
+                        data-save-edit-item="${escapeHtml(item.id)}"
+                        class="min-h-[40px] px-3 py-1.5 rounded-lg bg-yojna-sage text-white text-xs font-semibold cursor-pointer"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        data-cancel-edit-item="true"
+                        class="min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
               `;
@@ -1876,17 +2158,21 @@
                   }
                 </div>
 
-                <div class="flex items-center gap-3 shrink-0">
-                  <span class="text-sm sm:text-base font-bold font-mono tabular-nums text-neutral-900 dark:text-neutral-100">
-                    ${formatCurrency(item.cost)}
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                  <span class="text-sm sm:text-base font-bold font-mono tabular-nums ${
+                    itemSign === '-'
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-neutral-900 dark:text-neutral-100'
+                  }">
+                    ${itemSign === '-' ? '-' : '+'}${formatCurrency(absCost)}
                   </span>
 
-                  <div class="flex items-center gap-1 no-print">
+                  <div class="flex items-center gap-0.5 no-print">
                     <button
                       type="button"
                       data-edit-item="${escapeHtml(item.id)}"
                       title="Edit item"
-                      class="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
+                      class="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
                     >
                       <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 20h9" />
@@ -1897,7 +2183,7 @@
                       type="button"
                       data-delete-item="${escapeHtml(item.id)}"
                       title="Delete item"
-                      class="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
+                      class="p-2 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
                     >
                       <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18" />
@@ -1925,7 +2211,7 @@
               type="button"
               data-pick-icon="${icon.id}"
               title="${icon.label}"
-              class="h-9 rounded-xl flex items-center justify-center border transition cursor-pointer ${
+              class="h-10 sm:h-9 rounded-xl flex items-center justify-center border transition cursor-pointer ${
                 isSelected
                   ? 'bg-yojna-sage/15 border-yojna-sage text-yojna-sageDark dark:text-yojna-sage'
                   : 'bg-neutral-100 dark:bg-yojna-darkElevated border-transparent text-neutral-600 dark:text-neutral-300 hover:border-neutral-300 dark:hover:border-neutral-600'
@@ -1956,10 +2242,11 @@
         selectedCreateIcon = 'folder';
         document.getElementById('create-project-name').value = '';
         document.getElementById('create-project-date').value = getTodayISO();
-        renderIconPicker('create-icon-grid', selectedCreateIcon, (iconId) => {
+        const refreshPicker = (iconId) => {
           selectedCreateIcon = iconId;
-          renderIconPicker('create-icon-grid', selectedCreateIcon, arguments.callee);
-        });
+          renderIconPicker('create-icon-grid', selectedCreateIcon, refreshPicker);
+        };
+        renderIconPicker('create-icon-grid', selectedCreateIcon, refreshPicker);
         document.getElementById('create-modal').classList.remove('hidden');
         setTimeout(() => document.getElementById('create-project-name').focus(), 40);
       }
@@ -2088,23 +2375,29 @@
         const noteInput = document.getElementById('item-note-input');
 
         const name = nameInput.value.trim();
-        const cost = parseFloat(costInput.value);
+        const rawCost = parseFloat(costInput.value);
         const note = noteInput.value.trim();
 
-        if (!name || isNaN(cost) || cost < 0) return;
+        if (!name || isNaN(rawCost)) return;
+
+        // If user typed a negative number directly, treat it as '-' sign with positive magnitude
+        const finalSign = rawCost < 0 ? '-' : selectedItemSign;
+        const absCost = Math.round(Math.abs(rawCost) * 100) / 100;
 
         recordUndoSnapshot(`Add "${name}"`);
         if (!Array.isArray(project.items)) project.items = [];
         project.items.push({
           id: generateId('item'),
           name,
-          cost: Math.round(cost * 100) / 100,
+          sign: finalSign,
+          cost: absCost,
           note,
         });
 
         nameInput.value = '';
         costInput.value = '';
         noteInput.value = '';
+        setItemSign('+');
         nameInput.focus();
 
         saveProjects(true);
@@ -2120,7 +2413,10 @@
         const lines = [
           `${project.name} (${formatDateDisplay(project.startDate)})`,
           '----------------------------------------',
-          ...items.map((it) => `• ${it.name}${it.note ? ` (${it.note})` : ''}: ${formatCurrency(it.cost)}`),
+          ...items.map((it) => {
+            const sign = it.sign === '-' ? '-' : '+';
+            return `• ${it.name}${it.note ? ` (${it.note})` : ''}: ${sign}${formatCurrency(Math.abs(Number(it.cost) || 0))}`;
+          }),
           '----------------------------------------',
           `Total: ${formatCurrency(getProjectTotal(project))}`,
         ];
@@ -2335,7 +2631,9 @@
           if (activeProjectId) openDeleteModal(activeProjectId);
         });
 
-        // Add Expense Item Form
+        // Add Expense Item Form & Sign Toggle
+        document.getElementById('item-sign-plus').addEventListener('click', () => setItemSign('+'));
+        document.getElementById('item-sign-minus').addEventListener('click', () => setItemSign('-'));
         document.getElementById('add-item-form').addEventListener('submit', handleAddItem);
 
         // Items List Delegated Actions (Edit / Save Edit / Delete)
@@ -2343,9 +2641,18 @@
           const project = projects.find((p) => p.id === activeProjectId);
           if (!project) return;
 
+          const editSignBtn = e.target.closest('[data-edit-sign]');
+          if (editSignBtn) {
+            editingItemSign = editSignBtn.getAttribute('data-edit-sign') === '-' ? '-' : '+';
+            renderProjectDetail();
+            return;
+          }
+
           const editBtn = e.target.closest('[data-edit-item]');
           if (editBtn) {
             editingItemId = editBtn.getAttribute('data-edit-item');
+            const targetItem = project.items.find((it) => it.id === editingItemId);
+            editingItemSign = targetItem && targetItem.sign === '-' ? '-' : '+';
             renderProjectDetail();
             return;
           }
@@ -2364,13 +2671,14 @@
             if (!item) return;
 
             const newName = document.getElementById(`edit-item-name-${itemId}`).value.trim();
-            const newCost = parseFloat(document.getElementById(`edit-item-cost-${itemId}`).value);
+            const rawNewCost = parseFloat(document.getElementById(`edit-item-cost-${itemId}`).value);
             const newNote = document.getElementById(`edit-item-note-${itemId}`).value.trim();
-            if (!newName || isNaN(newCost) || newCost < 0) return;
+            if (!newName || isNaN(rawNewCost)) return;
 
             recordUndoSnapshot(`Edit "${item.name}"`);
             item.name = newName;
-            item.cost = Math.round(newCost * 100) / 100;
+            item.sign = rawNewCost < 0 ? '-' : editingItemSign;
+            item.cost = Math.round(Math.abs(rawNewCost) * 100) / 100;
             item.note = newNote;
             editingItemId = null;
 
