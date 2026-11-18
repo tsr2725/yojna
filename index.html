@@ -2,7 +2,10 @@
 <html lang="en" class="antialiased">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <meta name="theme-color" content="#F5F6F5" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0D0E0D" media="(prefers-color-scheme: dark)" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -979,327 +982,196 @@
          ---------------------------------------------------------------------- */
       const STORAGE_KEY = 'yojna_projects_v2';
       const THEME_KEY = 'yojna_theme_mode';
+      const ACTIVE_PROJECT_KEY = 'yojna_active_project_id';
+      const ACTIVE_TAB_KEY = 'yojna_active_tab';
       const GH_TOKEN_KEY = 'yojna_gh_token';
       const GH_VAULT_SIG_KEY = 'yojna_unlocked_vault_sig';
       const GH_GIST_ID_KEY = 'yojna_gh_gist_id';
       const GH_GIST_ETAG_KEY = 'yojna_gh_gist_etag';
-      const GH_LAST_SYNC_KEY = 'yojna_gh_last_sync';
-      const GIST_FILENAME = 'yojna-projects.json';
-      const GIST_DESCRIPTION = 'Yojna Project Ledger Sync';
+      const GIST_FILENAME = 'yojna-ledger.json';
+      const GIST_DESCRIPTION = 'Yojna Project Expense Ledger (Private Sync)';
+      const LIVE_SYNC_INTERVAL_MS = 1500;
 
       let projects = [];
-      let currentTab = 'ongoing'; // 'ongoing' | 'done'
       let activeProjectId = null;
+      let currentTab = 'ongoing';
+      let undoStack = [];
+      let isSyncing = false;
+      let isPushing = false;
+      let hasPendingPush = false;
+      let localRevision = 0;
+      let liveSyncTimer = null;
+      let lastSyncTimestamp = null;
+      let lastSyncError = '';
+      let editingItemId = null;
+      let pendingDeleteProjectId = null;
+      let newItemSign = 1;
+      let editItemSign = 1;
       let selectedCreateIcon = 'folder';
       let selectedRenameIcon = 'folder';
-      let selectedItemSign = '+';
-      let editingItemSign = '+';
-      let pendingDeleteProjectId = null;
-      let editingItemId = null;
-
-      let undoStack = [];
-      const MAX_UNDO_STEPS = 30;
       let toastTimeout = null;
-      let syncDebounceTimer = null;
-      let isSyncing = false;
-      let isPushInFlight = false;
-      let hasQueuedPush = false;
-      let lastPullTimestamp = 0;
 
       /* ----------------------------------------------------------------------
-         2. Monochrome SVG Icon Library
+         2. Monochrome SVG Icon Library (56 Icons)
          ---------------------------------------------------------------------- */
-      const AVAILABLE_ICONS = [
-        {
-          id: 'folder',
-          label: 'Folder',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
-        },
-        {
-          id: 'home',
-          label: 'Home',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-        },
-        {
-          id: 'briefcase',
-          label: 'Work',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
-        },
-        {
-          id: 'plane',
-          label: 'Travel',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
-        },
-        {
-          id: 'car',
-          label: 'Vehicle',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>',
-        },
-        {
-          id: 'laptop',
-          label: 'Tech',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>',
-        },
-        {
-          id: 'wrench',
-          label: 'Build',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
-        },
-        {
-          id: 'shopping',
-          label: 'Shopping',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
-        },
-        {
-          id: 'heart',
-          label: 'Health',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
-        },
-        {
-          id: 'book',
-          label: 'Study',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-        },
-        {
-          id: 'camera',
-          label: 'Media',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
-        },
-        {
-          id: 'gift',
-          label: 'Event',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>',
-        },
-        {
-          id: 'utensils',
-          label: 'Dining',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>',
-        },
-        {
-          id: 'sparkles',
-          label: 'Goals',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>',
-        },
-        {
-          id: 'layers',
-          label: 'Stack',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
-        },
-        {
-          id: 'calendar',
-          label: 'Schedule',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
-        },
-        {
-          id: 'wallet',
-          label: 'Finance',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',
-        },
-        {
-          id: 'graduation',
-          label: 'Education',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>',
-        },
-        {
-          id: 'dumbbell',
-          label: 'Fitness',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>',
-        },
-        {
-          id: 'music',
-          label: 'Music',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-        },
-        {
-          id: 'palette',
-          label: 'Art & Design',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>',
-        },
-        {
-          id: 'sprout',
-          label: 'Garden',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>',
-        },
-        {
-          id: 'paw',
-          label: 'Pets',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>',
-        },
-        {
-          id: 'coffee',
-          label: 'Cafe',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>',
-        },
-        {
-          id: 'smartphone',
-          label: 'Mobile',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
-        },
-        {
-          id: 'globe',
-          label: 'Global',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
-        },
-        {
-          id: 'bike',
-          label: 'Cycling',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>',
-        },
-        {
-          id: 'trophy',
-          label: 'Sports',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
-        },
-        {
-          id: 'shield',
-          label: 'Insurance',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-        },
-        {
-          id: 'truck',
-          label: 'Moving',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
-        },
-        {
-          id: 'scissors',
-          label: 'Craft',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>',
-        },
-        {
-          id: 'sun',
-          label: 'Holiday',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
-        },
-        {
-          id: 'hammer',
-          label: 'Renovation',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 11.7-1.25-1.25c-.6-.6-.93-1.4-.93-2.25v-.86L16.01 4.6a5.56 5.56 0 0 0-3.94-1.64H9l.92.82A6.18 6.18 0 0 1 12 8.4v1.56l2 2h2.47l2.26 1.91"/></svg>',
-        },
-        {
-          id: 'key',
-          label: 'Property',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>',
-        },
-        {
-          id: 'building',
-          label: 'Office',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>',
-        },
-        {
-          id: 'package',
-          label: 'Shipping',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
-        },
-        {
-          id: 'creditcard',
-          label: 'Bills',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
-        },
-        {
-          id: 'coins',
-          label: 'Savings',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>',
-        },
-        {
-          id: 'tag',
-          label: 'Deals',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>',
-        },
-        {
-          id: 'lightbulb',
-          label: 'Ideas',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>',
-        },
-        {
-          id: 'flame',
-          label: 'Energy',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
-        },
-        {
-          id: 'droplet',
-          label: 'Utilities',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
-        },
-        {
-          id: 'zap',
-          label: 'Electric',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
-        },
-        {
-          id: 'wifi',
-          label: 'Internet',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>',
-        },
-        {
-          id: 'headphones',
-          label: 'Audio',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>',
-        },
-        {
-          id: 'tv',
-          label: 'Entertainment',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>',
-        },
-        {
-          id: 'compass',
-          label: 'Adventure',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
-        },
-        {
-          id: 'mappin',
-          label: 'Location',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
-        },
-        {
-          id: 'anchor',
-          label: 'Marine',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>',
-        },
-        {
-          id: 'umbrella',
-          label: 'Weather',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a10.06 10.06 0 0 0-20 0Z"/><path d="M12 12v8a2 2 0 0 0 4 0"/><path d="M12 2v1"/></svg>',
-        },
-        {
-          id: 'watch',
-          label: 'Time',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><polyline points="12 10 12 12 13 13"/><path d="m16.13 7.66-.81-4.05a2 2 0 0 0-2-1.61h-2.68a2 2 0 0 0-2 1.61l-.78 4.05"/><path d="m7.88 16.36.8 4a2 2 0 0 0 2 1.61h2.72a2 2 0 0 0 2-1.61l.81-4.05"/></svg>',
-        },
-        {
-          id: 'star',
-          label: 'Priority',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-        },
-        {
-          id: 'flag',
-          label: 'Milestone',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>',
-        },
-        {
-          id: 'rocket',
-          label: 'Launch',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
-        },
-        {
-          id: 'leaf',
-          label: 'Eco',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>',
-        },
-        {
-          id: 'landmark',
-          label: 'Bank & Tax',
-          svg: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>',
-        },
-      ];
+      const PROJECT_ICONS = {
+        folder: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+        home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+        wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+        hammer: '<path d="m15 12-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 11.7-1.25-1.25c-.6-.6-.93-1.4-.93-2.25v-.86L16.01 4.6a5.56 5.56 0 0 0-3.94-1.64H9l.92.82A6.18 6.18 0 0 1 12 8.4v1.56l2 2h2.47l2.26 1.91"/>',
+        car: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+        truck: '<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+        plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+        briefcase: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+        laptop: '<rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="20" x2="22" y2="20"/>',
+        smartphone: '<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+        camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+        headphones: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+        tv: '<rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/>',
+        wifi: '<path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>',
+        zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+        lightbulb: '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+        flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+        droplet: '<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>',
+        key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+        building: '<rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/>',
+        landmark: '<line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/>',
+        package: '<line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+        shoppingbag: '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+        cart: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+        tag: '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+        creditcard: '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
+        coins: '<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
+        wallet: '<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
+        receipt: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
+        utensils: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+        coffee: '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>',
+        heart: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+        activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+        book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+        graduation: '<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+        palette: '<circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
+        music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+        gamepad: '<line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/>',
+        gift: '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
+        sparkles: '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>',
+        star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+        flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
+        rocket: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+        compass: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+        mappin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+        anchor: '<circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/>',
+        umbrella: '<path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 7a3 3 0 0 1-6 0v-7"/>',
+        sun: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
+        leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+        trees: '<path d="M10 10v.2A3 3 0 0 1 8.9 16v0H5v0h0a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/><path d="M7 16v6"/><path d="M13 19v3"/><path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"/>',
+        flower: '<circle cx="12" cy="12" r="3"/><path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5"/>',
+        paw: '<circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>',
+        baby: '<path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/>',
+        watch: '<circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"/>',
+        shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+        globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+      };
 
-      function getIconSvg(iconId) {
-        const found = AVAILABLE_ICONS.find((i) => i.id === iconId);
-        return found ? found.svg : AVAILABLE_ICONS[0].svg;
+      function getIconSvg(iconKey, sizeClass = 'w-5 h-5') {
+        const inner = PROJECT_ICONS[iconKey] || PROJECT_ICONS.folder;
+        return `<svg class="${sizeClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
       }
 
       /* ----------------------------------------------------------------------
-         3. Utility & Formatting Helpers
+         3. White-Background Touch Icon & Web Manifest Generator (iOS & Android)
          ---------------------------------------------------------------------- */
+      function initWhiteBackgroundTouchIcons() {
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            try {
+              const size = 512;
+              const canvas = document.createElement('canvas');
+              canvas.width = size;
+              canvas.height = size;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) return;
+
+              // Pure white background so bookmarks & Home Screen icons have a clean white tile
+              ctx.fillStyle = '#FFFFFF';
+              ctx.fillRect(0, 0, size, size);
+
+              // Balanced inner padding so iOS squircle & Android circular masks never clip logo.png
+              const pad = Math.round(size * 0.16);
+              const targetBox = size - pad * 2;
+              const scale = Math.min(targetBox / (img.width || size), targetBox / (img.height || size));
+              const drawW = Math.round((img.width || size) * scale);
+              const drawH = Math.round((img.height || size) * scale);
+              const drawX = Math.round((size - drawW) / 2);
+              const drawY = Math.round((size - drawH) / 2);
+
+              ctx.drawImage(img, drawX, drawY, drawW, drawH);
+              const whiteIconDataUrl = canvas.toDataURL('image/png');
+
+              const appleLink = document.getElementById('apple-touch-icon-link');
+              if (appleLink) appleLink.href = whiteIconDataUrl;
+
+              const manifestPayload = {
+                name: 'Yojna',
+                short_name: 'Yojna',
+                start_url: './',
+                display: 'standalone',
+                background_color: '#FFFFFF',
+                theme_color: '#FFFFFF',
+                icons: [
+                  {
+                    src: whiteIconDataUrl,
+                    sizes: '512x512',
+                    type: 'image/png',
+                    purpose: 'any maskable',
+                  },
+                ],
+              };
+              const blob = new Blob([JSON.stringify(manifestPayload)], { type: 'application/manifest+json' });
+              const manifestUrl = URL.createObjectURL(blob);
+              const manifestLink = document.getElementById('manifest-link');
+              if (manifestLink) manifestLink.href = manifestUrl;
+            } catch (_) {}
+          };
+          img.onerror = () => {};
+          img.src = 'logo.png';
+        } catch (_) {}
+      }
+
+      /* ----------------------------------------------------------------------
+         4. Formatting, Escaping & Date Helpers
+         ---------------------------------------------------------------------- */
+      function formatCurrency(amount) {
+        const num = Number(amount) || 0;
+        const absFormatted = Math.abs(num).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        return num < 0 ? `-$${absFormatted}` : `$${absFormatted}`;
+      }
+
+      function formatDisplayDate(isoDate) {
+        if (!isoDate) return '';
+        const parts = isoDate.split('-');
+        if (parts.length !== 3) return isoDate;
+        const year = Number(parts[0]);
+        const month = Number(parts[1]) - 1;
+        const day = Number(parts[2]);
+        const d = new Date(year, month, day);
+        if (Number.isNaN(d.getTime())) return isoDate;
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function getTodayIsoDate() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
       function escapeHtml(str) {
         return String(str || '')
           .replace(/&/g, '&amp;')
@@ -1309,138 +1181,36 @@
           .replace(/'/g, '&#39;');
       }
 
-      function formatCurrency(amount) {
-        const num = Number(amount) || 0;
-        return num.toLocaleString('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
-      }
-
-      function formatDateDisplay(isoDate) {
-        if (!isoDate) return 'No start date';
-        const parts = isoDate.split('-');
-        if (parts.length !== 3) return isoDate;
-        const dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-        if (isNaN(dateObj.getTime())) return isoDate;
-        return dateObj.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        });
-      }
-
-      function getTodayISO() {
-        const d = new Date();
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
-      }
-
       function generateId(prefix = 'id') {
         return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
       }
 
-      function triggerShake(el) {
-        if (!el) return;
-        el.classList.remove('animate-shake');
-        void el.offsetWidth;
-        el.classList.add('animate-shake');
+      function getProjectTotal(project) {
+        if (!project || !Array.isArray(project.items)) return 0;
+        return project.items.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
       }
 
-      function showToast(message, allowUndo = false) {
-        const container = document.getElementById('toast-container');
-        const msgEl = document.getElementById('toast-message');
-        const undoBtn = document.getElementById('toast-undo-btn');
-        if (!container || !msgEl) return;
+      /* ----------------------------------------------------------------------
+         5. Theme Management (Auto / Dark / Light)
+         ---------------------------------------------------------------------- */
+      function applyThemeMode(mode) {
+        const validMode = mode === 'dark' || mode === 'light' ? mode : 'auto';
+        try {
+          localStorage.setItem(THEME_KEY, validMode);
+        } catch (_) {}
 
-        msgEl.textContent = message;
-        if (undoBtn) {
-          undoBtn.classList.toggle('hidden', !allowUndo || undoStack.length === 0);
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const shouldBeDark = validMode === 'dark' || (validMode === 'auto' && prefersDark);
+
+        if (shouldBeDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
         }
 
-        container.classList.remove('hidden');
-        if (toastTimeout) clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => {
-          container.classList.add('hidden');
-        }, 4200);
-      }
-
-      /* ----------------------------------------------------------------------
-         4. White-Background Touch Icon & Manifest Generator (iOS & Android)
-         ---------------------------------------------------------------------- */
-      function initWhiteBackgroundTouchIcons() {
-        try {
-          const img = new Image();
-          img.onload = function () {
-            const size = 512;
-            const canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return;
-
-            // Pure white background for iOS / Android bookmarks & Home Screen icons
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, size, size);
-
-            // Draw transparent logo centered with clean breathing room
-            const padding = Math.round(size * 0.16);
-            const targetBox = size - padding * 2;
-            const scale = Math.min(targetBox / img.width, targetBox / img.height);
-            const drawW = Math.round(img.width * scale);
-            const drawH = Math.round(img.height * scale);
-            const offsetX = Math.round((size - drawW) / 2);
-            const offsetY = Math.round((size - drawH) / 2);
-
-            ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
-
-            const whiteBgPngUrl = canvas.toDataURL('image/png');
-            const appleLink = document.getElementById('apple-touch-icon-link');
-            if (appleLink) appleLink.href = whiteBgPngUrl;
-
-            // Generate Web App Manifest for Android Chrome "Add to Home Screen"
-            const manifest = {
-              name: 'Yojna',
-              short_name: 'Yojna',
-              start_url: '.',
-              display: 'standalone',
-              background_color: '#FFFFFF',
-              theme_color: '#FFFFFF',
-              icons: [
-                {
-                  src: whiteBgPngUrl,
-                  sizes: '512x512',
-                  type: 'image/png',
-                  purpose: 'any maskable',
-                },
-              ],
-            };
-            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-            const manifestLink = document.getElementById('manifest-link');
-            if (manifestLink) {
-              manifestLink.href = URL.createObjectURL(manifestBlob);
-            }
-          };
-          img.onerror = function () {};
-          img.src = 'logo.png';
-        } catch (_) {}
-      }
-
-      /* ----------------------------------------------------------------------
-         5. Automatic System-Synced Dark Mode
-         ---------------------------------------------------------------------- */
-      function applyTheme(mode) {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const shouldBeDark = mode === 'dark' || (mode === 'auto' && prefersDark);
-        document.documentElement.classList.toggle('dark', shouldBeDark);
-
-        const label = document.getElementById('theme-label');
-        if (label) {
-          label.textContent = mode === 'auto' ? 'Auto' : mode === 'dark' ? 'Dark' : 'Light';
+        const labelEl = document.getElementById('theme-label');
+        if (labelEl) {
+          labelEl.textContent = validMode === 'auto' ? 'Auto' : validMode === 'dark' ? 'Dark' : 'Light';
         }
       }
 
@@ -1449,65 +1219,57 @@
         try {
           saved = localStorage.getItem(THEME_KEY) || 'auto';
         } catch (_) {}
-        applyTheme(saved);
+        applyThemeMode(saved);
 
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
           const current = localStorage.getItem(THEME_KEY) || 'auto';
-          if (current === 'auto') applyTheme('auto');
+          if (current === 'auto') applyThemeMode('auto');
         });
       }
 
-      function cycleTheme() {
+      function cycleThemeMode() {
         const current = localStorage.getItem(THEME_KEY) || 'auto';
         const next = current === 'auto' ? 'dark' : current === 'dark' ? 'light' : 'auto';
-        try {
-          localStorage.setItem(THEME_KEY, next);
-        } catch (_) {}
-        applyTheme(next);
+        applyThemeMode(next);
       }
 
       /* ----------------------------------------------------------------------
-         6. Web Crypto Passphrase Decryption & One-Time Device Unlock
+         6. Embedded Vault Decryption & Passphrase Gate
          ---------------------------------------------------------------------- */
       function base64ToBytes(b64) {
-        const binary = atob(b64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-          bytes[i] = binary.charCodeAt(i);
+        const cleaned = String(b64 || '').replace(/\s+/g, '');
+        const bin = atob(cleaned);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) {
+          bytes[i] = bin.charCodeAt(i);
         }
         return bytes;
       }
 
-      function computeVaultSignature(vaultStr) {
-        const clean = (vaultStr || '').replace(/\s+/g, '').trim();
-        if (!clean) return '';
-        let hash = 2166136261;
-        for (let i = 0; i < clean.length; i++) {
-          hash ^= clean.charCodeAt(i);
-          hash = Math.imul(hash, 16777619);
-        }
-        return `${clean.length}_${(hash >>> 0).toString(16)}`;
-      }
-
       function getCleanEmbeddedVault() {
-        return (EMBEDDED_ENCRYPTED_VAULT || '').replace(/\s+/g, '').trim();
+        return String(EMBEDDED_ENCRYPTED_VAULT || '').replace(/\s+/g, '');
       }
 
-      async function decryptTokenWithPassphrase(vaultString, passphrase) {
-        const trimmed = (vaultString || '').replace(/\s+/g, '').trim();
-        if (!trimmed.startsWith('yojna_v1:')) {
+      function hasEmbeddedVault() {
+        return getCleanEmbeddedVault().startsWith('yojna_v1:');
+      }
+
+      async function decryptEmbeddedVault(passphrase) {
+        const cleanVault = getCleanEmbeddedVault();
+        if (!cleanVault.startsWith('yojna_v1:')) {
           throw new Error('Invalid vault format.');
         }
 
-        const parsed = JSON.parse(atob(trimmed.slice('yojna_v1:'.length)));
-        const salt = base64ToBytes(parsed.s);
-        const iv = base64ToBytes(parsed.i);
-        const ciphertext = base64ToBytes(parsed.c);
+        const payloadJson = atob(cleanVault.slice('yojna_v1:'.length));
+        const payload = JSON.parse(payloadJson);
+        const salt = base64ToBytes(payload.s);
+        const iv = base64ToBytes(payload.i);
+        const ciphertext = base64ToBytes(payload.c);
 
         const encoder = new TextEncoder();
         const baseKey = await window.crypto.subtle.importKey(
           'raw',
-          encoder.encode((passphrase || '').trim()),
+          encoder.encode(String(passphrase || '').trim()),
           'PBKDF2',
           false,
           ['deriveKey']
@@ -1516,18 +1278,18 @@
         const aesKey = await window.crypto.subtle.deriveKey(
           {
             name: 'PBKDF2',
-            salt: salt,
+            salt,
             iterations: 100000,
             hash: 'SHA-256',
           },
           baseKey,
           { name: 'AES-GCM', length: 256 },
           false,
-          ['decrypt']
+          ['encrypt', 'decrypt']
         );
 
         const decryptedBuffer = await window.crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv: iv },
+          { name: 'AES-GCM', iv },
           aesKey,
           ciphertext
         );
@@ -1543,20 +1305,23 @@
         }
       }
 
-      function isDeviceUnlockedForVault() {
-        const embeddedVault = getCleanEmbeddedVault();
-        const token = getStoredGitHubToken();
-        if (!embeddedVault) {
-          // No embedded vault configured yet — allow normal access
+      function checkPassphraseGate() {
+        const gate = document.getElementById('passphrase-gate');
+        if (!hasEmbeddedVault()) {
+          gate.classList.add('hidden');
           return true;
         }
-        if (!token) return false;
-        const expectedSig = computeVaultSignature(embeddedVault);
-        const storedSig = localStorage.getItem(GH_VAULT_SIG_KEY) || '';
-        return storedSig === expectedSig;
-      }
 
-      function lockCurrentDevice() {
+        const cleanVault = getCleanEmbeddedVault();
+        const cachedToken = getStoredGitHubToken();
+        const cachedSig = localStorage.getItem(GH_VAULT_SIG_KEY) || '';
+
+        // If vault string changed in index.html, clear old cached token so user unlocks fresh token once
+        if (cachedToken && cachedSig === cleanVault) {
+          gate.classList.add('hidden');
+          return true;
+        }
+
         try {
           localStorage.removeItem(GH_TOKEN_KEY);
           localStorage.removeItem(GH_VAULT_SIG_KEY);
@@ -1564,464 +1329,573 @@
           localStorage.removeItem(GH_GIST_ETAG_KEY);
           localStorage.removeItem(STORAGE_KEY);
         } catch (_) {}
+
+        gate.classList.remove('hidden');
+        setTimeout(() => {
+          const input = document.getElementById('gate-passphrase-input');
+          if (input) input.focus();
+        }, 50);
+        return false;
+      }
+
+      function lockCurrentDevice() {
+        stopLiveSyncLoop();
+        try {
+          localStorage.removeItem(GH_TOKEN_KEY);
+          localStorage.removeItem(GH_VAULT_SIG_KEY);
+          localStorage.removeItem(GH_GIST_ID_KEY);
+          localStorage.removeItem(GH_GIST_ETAG_KEY);
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(ACTIVE_PROJECT_KEY);
+          localStorage.removeItem(ACTIVE_TAB_KEY);
+          if (window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          }
+        } catch (_) {}
         projects = [];
+        activeProjectId = null;
         undoStack = [];
+        document.title = 'Yojna — Project Expense & Management';
         closeAllModals();
         checkPassphraseGate();
       }
 
-      function checkPassphraseGate() {
-        const gate = document.getElementById('passphrase-gate');
-        const shell = document.getElementById('app-shell');
-        const unlocked = isDeviceUnlockedForVault();
-
-        if (!unlocked) {
-          if (gate) gate.classList.remove('hidden');
-          if (shell) shell.classList.add('hidden');
-          const input = document.getElementById('gate-passphrase-input');
-          if (input) setTimeout(() => input.focus(), 50);
-          return false;
-        } else {
-          if (gate) gate.classList.add('hidden');
-          if (shell) shell.classList.remove('hidden');
-          return true;
+      /* ----------------------------------------------------------------------
+         7. Active Project & Tab Persistence Across Reloads
+         ---------------------------------------------------------------------- */
+      function getPersistedActiveProjectId() {
+        try {
+          const hash = window.location.hash || '';
+          if (hash.startsWith('#project=')) {
+            const fromHash = decodeURIComponent(hash.slice('#project='.length)).trim();
+            if (fromHash) return fromHash;
+          }
+          return (localStorage.getItem(ACTIVE_PROJECT_KEY) || '').trim() || null;
+        } catch (_) {
+          return null;
         }
       }
 
-      /* ----------------------------------------------------------------------
-         7. Data Persistence & Sample Project Purge
-         ---------------------------------------------------------------------- */
-      function isSampleProject(p) {
-        if (!p || typeof p !== 'object') return true;
-        const sampleIds = ['proj_sample_1', 'proj_sample_2', 'sample_1', 'sample_2'];
-        const sampleNames = ['home office setup', 'weekend cabin trip'];
-        const idLower = String(p.id || '').toLowerCase();
-        const nameLower = String(p.name || '').trim().toLowerCase();
-        return sampleIds.includes(idLower) || sampleNames.includes(nameLower);
-      }
-
-      function loadProjects() {
+      function setActiveProject(projectId, updateHistory = true) {
+        activeProjectId = projectId || null;
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) {
-              projects = parsed.filter((p) => !isSampleProject(p));
-              if (projects.length !== parsed.length) {
-                saveProjects(false);
+          if (activeProjectId) {
+            localStorage.setItem(ACTIVE_PROJECT_KEY, activeProjectId);
+            if (updateHistory) {
+              const targetHash = `#project=${encodeURIComponent(activeProjectId)}`;
+              if (window.location.hash !== targetHash) {
+                window.history.replaceState(null, '', targetHash);
               }
-              return;
+            }
+          } else {
+            localStorage.removeItem(ACTIVE_PROJECT_KEY);
+            document.title = 'Yojna — Project Expense & Management';
+            if (updateHistory && window.location.hash) {
+              window.history.replaceState(null, '', window.location.pathname + window.location.search);
             }
           }
-        } catch (err) {
-          console.error('Failed to read local storage:', err);
-        }
-
-        // Always start clean with zero offline/sample projects
-        projects = [];
-        saveProjects(false);
+        } catch (_) {}
       }
 
-      function saveProjects(triggerCloudSync = true) {
+      function setCurrentTab(tab) {
+        currentTab = tab === 'done' ? 'done' : 'ongoing';
         try {
-          projects = projects.filter((p) => !isSampleProject(p));
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-        } catch (err) {
-          console.error('Failed to save local storage:', err);
-        }
-
-        if (triggerCloudSync && getStoredGitHubToken()) {
-          if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-          syncDebounceTimer = setTimeout(() => {
-            syncDebounceTimer = null;
-            pushProjectsToGist(true);
-          }, 150);
-        }
-      }
-
-      function flushPendingSync() {
-        if (syncDebounceTimer && getStoredGitHubToken()) {
-          clearTimeout(syncDebounceTimer);
-          syncDebounceTimer = null;
-          pushProjectsToGist(true);
-        }
+          localStorage.setItem(ACTIVE_TAB_KEY, currentTab);
+        } catch (_) {}
       }
 
       /* ----------------------------------------------------------------------
-         8. Private GitHub Gist Cloud Sync (Fast Single-Call + ETag Caching)
+         8. Fast Real-Time GitHub Gist Cloud Sync (< 2 Seconds)
          ---------------------------------------------------------------------- */
-      function setSyncError(message) {
-        const box = document.getElementById('sync-error-box');
-        if (!box) return;
-        if (message) {
-          box.textContent = message;
-          box.classList.remove('hidden');
-        } else {
-          box.textContent = '';
-          box.classList.add('hidden');
-        }
-      }
-
-      function setSyncActivityIndicator(active) {
-        const statusDot = document.getElementById('sync-status-dot');
-        if (!statusDot || !getStoredGitHubToken()) return;
+      function updateSyncPulseIndicator(active) {
+        const dot = document.getElementById('sync-status-dot');
+        if (!dot) return;
         if (active) {
-          statusDot.classList.remove('bg-yojna-sage');
-          statusDot.classList.add('bg-amber-400', 'animate-pulse');
+          dot.classList.add('animate-pulse');
         } else {
-          statusDot.classList.remove('bg-amber-400', 'animate-pulse');
-          statusDot.classList.add('bg-yojna-sage');
+          dot.classList.remove('animate-pulse');
         }
       }
 
       function updateSyncIndicatorUI() {
-        const hasToken = Boolean(getStoredGitHubToken());
-        const hasEmbeddedVault = Boolean(getCleanEmbeddedVault());
-
-        const statusDot = document.getElementById('sync-status-dot');
+        const token = getStoredGitHubToken();
+        const dot = document.getElementById('sync-status-dot');
+        const statusText = document.getElementById('sync-status-text');
+        const errorBox = document.getElementById('sync-error-box');
         const metaInfo = document.getElementById('sync-meta-info');
-        const embeddedActions = document.getElementById('embedded-sync-actions');
-        const manualForm = document.getElementById('manual-sync-form');
-        const disconnectBtn = document.getElementById('disconnect-manual-sync-btn');
-        const manualSyncBtn = document.getElementById('manual-sync-now-btn');
         const lastTimeEl = document.getElementById('sync-last-time');
         const gistIdEl = document.getElementById('sync-gist-id');
+        const embeddedActions = document.getElementById('embedded-sync-actions');
+        const manualForm = document.getElementById('manual-sync-form');
+        const disconnectManualBtn = document.getElementById('disconnect-manual-sync-btn');
+        const manualSyncNowBtn = document.getElementById('manual-sync-now-btn');
 
-        if (statusDot) {
-          statusDot.classList.toggle('hidden', !hasToken);
-        }
-        if (metaInfo) {
-          metaInfo.classList.toggle('hidden', !hasToken);
-        }
-        if (lastTimeEl) {
-          const last = localStorage.getItem(GH_LAST_SYNC_KEY);
-          lastTimeEl.textContent = last ? new Date(last).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
-        }
-        if (gistIdEl) {
-          const gid = localStorage.getItem(GH_GIST_ID_KEY);
-          gistIdEl.textContent = gid ? `${gid.slice(0, 8)}...` : 'Pending';
-        }
-
-        if (hasEmbeddedVault) {
-          if (embeddedActions) embeddedActions.classList.remove('hidden');
-          if (manualForm) manualForm.classList.add('hidden');
+        if (token) {
+          dot.classList.remove('hidden');
+          if (lastSyncError) {
+            dot.classList.remove('bg-yojna-sage');
+            dot.classList.add('bg-red-500');
+          } else {
+            dot.classList.remove('bg-red-500');
+            dot.classList.add('bg-yojna-sage');
+          }
         } else {
-          if (embeddedActions) embeddedActions.classList.add('hidden');
-          if (manualForm) manualForm.classList.remove('hidden');
-          if (disconnectBtn) disconnectBtn.classList.toggle('hidden', !hasToken);
-          if (manualSyncBtn) manualSyncBtn.classList.toggle('hidden', !hasToken);
+          dot.classList.add('hidden');
+        }
+
+        if (lastSyncError) {
+          errorBox.textContent = lastSyncError;
+          errorBox.classList.remove('hidden');
+        } else {
+          errorBox.textContent = '';
+          errorBox.classList.add('hidden');
+        }
+
+        if (token) {
+          metaInfo.classList.remove('hidden');
+          lastTimeEl.textContent = lastSyncTimestamp
+            ? lastSyncTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+            : 'Ready';
+          const gid = localStorage.getItem(GH_GIST_ID_KEY);
+          gistIdEl.textContent = gid ? `${gid.slice(0, 10)}…` : 'Auto-detecting…';
+        } else {
+          metaInfo.classList.add('hidden');
+        }
+
+        if (hasEmbeddedVault()) {
+          embeddedActions.classList.remove('hidden');
+          manualForm.classList.add('hidden');
+          statusText.textContent =
+            'Your encrypted vault is unlocked on this device. Changes sync automatically across all devices in real time.';
+        } else {
+          embeddedActions.classList.add('hidden');
+          manualForm.classList.remove('hidden');
+          if (token) {
+            disconnectManualBtn.classList.remove('hidden');
+            manualSyncNowBtn.classList.remove('hidden');
+          } else {
+            disconnectManualBtn.classList.add('hidden');
+            manualSyncNowBtn.classList.add('hidden');
+          }
         }
       }
 
-      async function githubApiRequest(url, token, options = {}) {
-        const headers = {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github+json',
-          ...(options.headers || {}),
-        };
-        // Only attach Content-Type when sending a body to avoid extra CORS preflight requests on GET
-        if (options.body) {
-          headers['Content-Type'] = 'application/json';
-        }
+      async function findOrCreateYojnaGist(token) {
+        const cachedId = localStorage.getItem(GH_GIST_ID_KEY);
+        if (cachedId) return cachedId;
 
-        const response = await fetch(url, {
-          ...options,
+        const listRes = await fetch('https://api.github.com/gists?per_page=100', {
+          method: 'GET',
           cache: 'no-store',
-          headers,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github+json',
+          },
         });
 
-        if (response.status === 304) {
-          return { notModified: true, data: null };
+        if (!listRes.ok) {
+          throw new Error(`Sync failed (${listRes.status}) — check token scope (gist)`);
         }
 
-        if (!response.ok) {
-          const scopes = response.headers.get('X-OAuth-Scopes') || 'none';
-          let apiMsg = '';
-          try {
-            const errJson = await response.json();
-            apiMsg = errJson.message || '';
-          } catch (_) {}
+        const gists = await listRes.json();
+        const existing = Array.isArray(gists)
+          ? gists.find((g) => g && g.files && g.files[GIST_FILENAME])
+          : null;
 
-          if (response.status === 401) {
-            throw new Error('GitHub rejected the token (401 Unauthorized — check if token expired or was revoked).');
-          }
-          if (response.status === 403 || response.status === 404) {
-            const err = new Error(
-              `GitHub Gist access denied (HTTP ${response.status}${apiMsg ? `: ${apiMsg}` : ''}). Token scopes detected: [${scopes}]. Ensure "gist" scope is checked.`
-            );
-            err.status = response.status;
-            throw err;
-          }
-          const err = new Error(`GitHub API error (${response.status}): ${apiMsg || 'Unknown error'}`);
-          err.status = response.status;
-          throw err;
+        if (existing && existing.id) {
+          localStorage.setItem(GH_GIST_ID_KEY, existing.id);
+          return existing.id;
         }
 
-        const etag = response.headers.get('ETag');
-        const data = await response.json();
-        return { notModified: false, data, etag };
-      }
-
-      async function findOrCreateYojnaGist(token, useEtag = false) {
-        let cachedGistId = localStorage.getItem(GH_GIST_ID_KEY);
-        if (cachedGistId) {
-          try {
-            const cachedEtag = useEtag ? localStorage.getItem(GH_GIST_ETAG_KEY) : null;
-            const res = await githubApiRequest(`https://api.github.com/gists/${cachedGistId}`, token, {
-              headers: cachedEtag ? { 'If-None-Match': cachedEtag } : {},
-            });
-            if (res.notModified) {
-              return { notModified: true, gist: null };
-            }
-            if (res.data && res.data.files && res.data.files[GIST_FILENAME]) {
-              if (res.etag) localStorage.setItem(GH_GIST_ETAG_KEY, res.etag);
-              return { notModified: false, gist: res.data };
-            }
-          } catch (_) {
-            localStorage.removeItem(GH_GIST_ID_KEY);
-            localStorage.removeItem(GH_GIST_ETAG_KEY);
-          }
-        }
-
-        // Search user's gists for an existing Yojna sync gist
-        const listRes = await githubApiRequest('https://api.github.com/gists?per_page=100', token);
-        const gists = listRes.data;
-        if (Array.isArray(gists)) {
-          const match = gists.find(
-            (g) => g.description === GIST_DESCRIPTION || (g.files && Boolean(g.files[GIST_FILENAME]))
-          );
-          if (match) {
-            localStorage.setItem(GH_GIST_ID_KEY, match.id);
-            const fullRes = await githubApiRequest(`https://api.github.com/gists/${match.id}`, token);
-            if (fullRes.etag) localStorage.setItem(GH_GIST_ETAG_KEY, fullRes.etag);
-            return { notModified: false, gist: fullRes.data };
-          }
-        }
-
-        // Create a brand-new private Gist with an empty ledger
-        const createdRes = await githubApiRequest('https://api.github.com/gists', token, {
+        const createRes = await fetch('https://api.github.com/gists', {
           method: 'POST',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             description: GIST_DESCRIPTION,
             public: false,
             files: {
               [GIST_FILENAME]: {
-                content: JSON.stringify({ updatedAt: new Date().toISOString(), projects: [] }),
+                content: JSON.stringify({
+                  version: 2,
+                  updatedAt: new Date().toISOString(),
+                  projects: projects,
+                }),
               },
             },
           }),
         });
 
-        localStorage.setItem(GH_GIST_ID_KEY, createdRes.data.id);
-        if (createdRes.etag) localStorage.setItem(GH_GIST_ETAG_KEY, createdRes.etag);
-        return { notModified: false, gist: createdRes.data };
-      }
-
-      async function pullProjectsFromGist(silent = true, forceFullFetch = false) {
-        const token = getStoredGitHubToken();
-        if (!token || isSyncing || isPushInFlight) return;
-
-        isSyncing = true;
-        lastPullTimestamp = Date.now();
-        setSyncActivityIndicator(true);
-        setSyncError('');
-        try {
-          const useEtag = !forceFullFetch && projects.length > 0;
-          const result = await findOrCreateYojnaGist(token, useEtag);
-
-          if (!result.notModified && result.gist) {
-            const fileObj = result.gist.files && result.gist.files[GIST_FILENAME];
-            if (fileObj && typeof fileObj.content === 'string') {
-              const parsed = JSON.parse(fileObj.content);
-              const remoteProjects = Array.isArray(parsed)
-                ? parsed
-                : Array.isArray(parsed.projects)
-                ? parsed.projects
-                : [];
-
-              const cleanedRemote = remoteProjects.filter((p) => !isSampleProject(p));
-              projects = cleanedRemote;
-              saveProjects(false);
-
-              if (cleanedRemote.length !== remoteProjects.length) {
-                await pushProjectsToGist(true);
-              }
-            }
-            renderCurrentView();
-          }
-
-          localStorage.setItem(GH_LAST_SYNC_KEY, new Date().toISOString());
-          updateSyncIndicatorUI();
-          if (!silent) showToast('Synced across devices');
-        } catch (err) {
-          console.error('Gist pull error:', err);
-          setSyncError(err.message || 'Sync failed — check token scope (gist).');
-          if (!silent) showToast('Sync failed — open GitHub icon for details');
-        } finally {
-          isSyncing = false;
-          setSyncActivityIndicator(false);
+        if (!createRes.ok) {
+          throw new Error(`Could not create Gist (${createRes.status}) — check token scope (gist)`);
         }
-      }
 
-      async function sendGistPatch(gistId, token, bodyString) {
-        const res = await githubApiRequest(`https://api.github.com/gists/${gistId}`, token, {
-          method: 'PATCH',
-          keepalive: bodyString.length < 60000,
-          body: bodyString,
-        });
-        if (res.etag) {
-          localStorage.setItem(GH_GIST_ETAG_KEY, res.etag);
+        const created = await createRes.json();
+        if (created && created.id) {
+          localStorage.setItem(GH_GIST_ID_KEY, created.id);
+          return created.id;
         }
-        return res.data;
+        return null;
       }
 
       async function pushProjectsToGist(silent = true) {
         const token = getStoredGitHubToken();
-        if (!token) return;
-
-        if (isPushInFlight) {
-          hasQueuedPush = true;
-          return;
+        if (!token) return false;
+        if (isPushing) {
+          hasPendingPush = true;
+          return false;
         }
 
-        isPushInFlight = true;
-        setSyncActivityIndicator(true);
-        setSyncError('');
+        isPushing = true;
+        hasPendingPush = false;
+        updateSyncPulseIndicator(true);
 
         try {
-          const cleanPayload = projects.filter((p) => !isSampleProject(p));
-          const bodyString = JSON.stringify({
-            description: GIST_DESCRIPTION,
-            files: {
-              [GIST_FILENAME]: {
-                content: JSON.stringify({
-                  updatedAt: new Date().toISOString(),
-                  projects: cleanPayload,
-                }),
-              },
-            },
+          const gistId = await findOrCreateYojnaGist(token);
+          if (!gistId) return false;
+
+          const serialized = JSON.stringify({
+            version: 2,
+            updatedAt: new Date().toISOString(),
+            projects: projects,
           });
 
-          let gistId = localStorage.getItem(GH_GIST_ID_KEY);
-          if (gistId) {
-            try {
-              // Fast path: directly PATCH the known Gist in a single round-trip
-              await sendGistPatch(gistId, token, bodyString);
-            } catch (patchErr) {
-              if (patchErr && patchErr.status === 404) {
-                localStorage.removeItem(GH_GIST_ID_KEY);
-                localStorage.removeItem(GH_GIST_ETAG_KEY);
-                const found = await findOrCreateYojnaGist(token, false);
-                await sendGistPatch(found.gist.id, token, bodyString);
-              } else {
-                throw patchErr;
-              }
+          const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+            method: 'PATCH',
+            cache: 'no-store',
+            keepalive: true,
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: 'application/vnd.github+json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              files: {
+                [GIST_FILENAME]: {
+                  content: serialized,
+                },
+              },
+            }),
+          });
+
+          if (!res.ok) {
+            if (res.status === 404) {
+              localStorage.removeItem(GH_GIST_ID_KEY);
+              localStorage.removeItem(GH_GIST_ETAG_KEY);
             }
-          } else {
-            const found = await findOrCreateYojnaGist(token, false);
-            await sendGistPatch(found.gist.id, token, bodyString);
+            throw new Error(`Sync failed (${res.status}) — check token scope (gist)`);
           }
 
-          localStorage.setItem(GH_LAST_SYNC_KEY, new Date().toISOString());
+          const newEtag = res.headers.get('ETag');
+          if (newEtag) {
+            localStorage.setItem(GH_GIST_ETAG_KEY, newEtag);
+          } else {
+            localStorage.removeItem(GH_GIST_ETAG_KEY);
+          }
+
+          lastSyncTimestamp = new Date();
+          lastSyncError = '';
           updateSyncIndicatorUI();
-          if (!silent) showToast('Saved & synced to cloud');
+          if (!silent) showToast('Synced to cloud');
+          return true;
         } catch (err) {
-          console.error('Gist push error:', err);
-          setSyncError(err.message || 'Sync failed — check token scope (gist).');
-          if (!silent) showToast('Sync failed — open GitHub icon for details');
+          lastSyncError = err && err.message ? err.message : 'Sync failed — check token scope (gist)';
+          updateSyncIndicatorUI();
+          if (!silent) showToast(lastSyncError);
+          return false;
         } finally {
-          isPushInFlight = false;
-          setSyncActivityIndicator(false);
-          if (hasQueuedPush) {
-            hasQueuedPush = false;
+          isPushing = false;
+          updateSyncPulseIndicator(false);
+          if (hasPendingPush) {
             pushProjectsToGist(true);
           }
         }
       }
 
+      async function pullProjectsFromGist(silent = true) {
+        const token = getStoredGitHubToken();
+        if (!token) return false;
+        if (isSyncing || isPushing || hasPendingPush) return false;
+
+        const startRevision = localRevision;
+        isSyncing = true;
+        if (!silent) updateSyncPulseIndicator(true);
+
+        try {
+          const gistId = await findOrCreateYojnaGist(token);
+          if (!gistId) return false;
+
+          const headers = {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github+json',
+          };
+          const cachedEtag = localStorage.getItem(GH_GIST_ETAG_KEY);
+          if (cachedEtag && silent) {
+            headers['If-None-Match'] = cachedEtag;
+          }
+
+          const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+            method: 'GET',
+            cache: 'no-store',
+            headers,
+          });
+
+          if (localRevision !== startRevision || isPushing || hasPendingPush) {
+            return false;
+          }
+
+          if (res.status === 304) {
+            lastSyncTimestamp = new Date();
+            lastSyncError = '';
+            updateSyncIndicatorUI();
+            return true;
+          }
+
+          if (!res.ok) {
+            if (res.status === 404) {
+              localStorage.removeItem(GH_GIST_ID_KEY);
+              localStorage.removeItem(GH_GIST_ETAG_KEY);
+            }
+            throw new Error(`Sync failed (${res.status}) — check token scope (gist)`);
+          }
+
+          const etag = res.headers.get('ETag');
+          if (etag) {
+            localStorage.setItem(GH_GIST_ETAG_KEY, etag);
+          }
+
+          const gistData = await res.json();
+          const fileObj = gistData && gistData.files ? gistData.files[GIST_FILENAME] : null;
+          if (fileObj && typeof fileObj.content === 'string') {
+            const parsed = JSON.parse(fileObj.content);
+            const rawList = Array.isArray(parsed)
+              ? parsed
+              : Array.isArray(parsed.projects)
+              ? parsed.projects
+              : [];
+
+            const cleanRemote = rawList.filter(
+              (p) =>
+                p &&
+                typeof p === 'object' &&
+                p.name !== 'Home Office Setup' &&
+                p.name !== 'Weekend Cabin Trip'
+            );
+
+            const remoteStr = JSON.stringify(cleanRemote);
+            const localStr = JSON.stringify(projects);
+
+            if (remoteStr !== localStr) {
+              projects = cleanRemote;
+              try {
+                localStorage.setItem(STORAGE_KEY, remoteStr);
+              } catch (_) {}
+              renderCurrentView();
+            }
+          }
+
+          lastSyncTimestamp = new Date();
+          lastSyncError = '';
+          updateSyncIndicatorUI();
+          if (!silent) showToast('Synced from cloud');
+          return true;
+        } catch (err) {
+          lastSyncError = err && err.message ? err.message : 'Sync failed — check token scope (gist)';
+          updateSyncIndicatorUI();
+          if (!silent) showToast(lastSyncError);
+          return false;
+        } finally {
+          isSyncing = false;
+          if (!silent) updateSyncPulseIndicator(false);
+        }
+      }
+
+      function startLiveSyncLoop() {
+        stopLiveSyncLoop();
+        liveSyncTimer = window.setInterval(() => {
+          if (document.visibilityState === 'visible' && getStoredGitHubToken()) {
+            pullProjectsFromGist(true);
+          }
+        }, LIVE_SYNC_INTERVAL_MS);
+      }
+
+      function stopLiveSyncLoop() {
+        if (liveSyncTimer !== null) {
+          window.clearInterval(liveSyncTimer);
+          liveSyncTimer = null;
+        }
+      }
+
       /* ----------------------------------------------------------------------
-         9. Multi-Step Undo Engine
+         9. Local Data Persistence & Undo History
          ---------------------------------------------------------------------- */
-      function recordUndoSnapshot(actionLabel) {
+      function loadProjects() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            projects = [];
+            return;
+          }
+          const parsed = JSON.parse(raw);
+          const list = Array.isArray(parsed) ? parsed : [];
+          projects = list.filter(
+            (p) =>
+              p &&
+              typeof p === 'object' &&
+              p.name !== 'Home Office Setup' &&
+              p.name !== 'Weekend Cabin Trip'
+          );
+          if (projects.length !== list.length) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+          }
+        } catch (_) {
+          projects = [];
+        }
+      }
+
+      function saveProjects(triggerCloudSync = true) {
+        localRevision++;
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+        } catch (_) {}
+
+        if (triggerCloudSync && getStoredGitHubToken()) {
+          hasPendingPush = true;
+          if (!isPushing) {
+            queueMicrotask(() => {
+              pushProjectsToGist(true);
+            });
+          }
+        }
+      }
+
+      function pushUndoSnapshot(label) {
         undoStack.push({
-          label: actionLabel,
-          projects: JSON.parse(JSON.stringify(projects)),
+          label: label || 'Action undone',
+          snapshot: JSON.stringify(projects),
           activeProjectId,
           currentTab,
         });
-        if (undoStack.length > MAX_UNDO_STEPS) {
+        if (undoStack.length > 25) {
           undoStack.shift();
         }
         updateUndoButtons();
       }
 
-      function updateUndoButtons() {
-        const canUndo = undoStack.length > 0;
-        const homeBtn = document.getElementById('undo-btn-home');
-        const detailBtn = document.getElementById('undo-btn-detail');
-        if (homeBtn) homeBtn.disabled = !canUndo;
-        if (detailBtn) detailBtn.disabled = !canUndo;
-      }
-
       function performUndo() {
         if (undoStack.length === 0) return;
-        const previous = undoStack.pop();
-        projects = previous.projects;
-        if (previous.activeProjectId && projects.some((p) => p.id === previous.activeProjectId)) {
-          activeProjectId = previous.activeProjectId;
-        } else if (activeProjectId && !projects.some((p) => p.id === activeProjectId)) {
-          activeProjectId = null;
-        }
-        if (previous.currentTab) {
-          currentTab = previous.currentTab;
-        }
-
-        saveProjects(true);
+        const entry = undoStack.pop();
+        try {
+          projects = JSON.parse(entry.snapshot);
+          if (entry.currentTab) setCurrentTab(entry.currentTab);
+          if (entry.activeProjectId && projects.some((p) => p.id === entry.activeProjectId)) {
+            setActiveProject(entry.activeProjectId);
+          } else if (!projects.some((p) => p.id === activeProjectId)) {
+            setActiveProject(null);
+          }
+          editingItemId = null;
+          saveProjects(true);
+          renderCurrentView();
+          showToast(`Undid: ${entry.label}`, false);
+        } catch (_) {}
         updateUndoButtons();
-        renderCurrentView();
-        showToast(`Undid: ${previous.label}`, false);
+      }
+
+      function updateUndoButtons() {
+        const disabled = undoStack.length === 0;
+        const homeBtn = document.getElementById('undo-btn-home');
+        const detailBtn = document.getElementById('undo-btn-detail');
+        if (homeBtn) homeBtn.disabled = disabled;
+        if (detailBtn) detailBtn.disabled = disabled;
       }
 
       /* ----------------------------------------------------------------------
-         10. Rendering: Home View & Project Detail View
+         10. Toast Notifications & Modal Management
          ---------------------------------------------------------------------- */
-      function setItemSign(sign) {
-        selectedItemSign = sign === '-' ? '-' : '+';
-        const plusBtn = document.getElementById('item-sign-plus');
-        const minusBtn = document.getElementById('item-sign-minus');
-        if (!plusBtn || !minusBtn) return;
+      function showToast(message, showUndo = false) {
+        const container = document.getElementById('toast-container');
+        const msgEl = document.getElementById('toast-message');
+        const undoBtn = document.getElementById('toast-undo-btn');
 
-        const inactiveClasses = ['text-neutral-500', 'dark:text-neutral-400', 'hover:text-neutral-800', 'dark:hover:text-neutral-200'];
-        if (selectedItemSign === '+') {
-          plusBtn.classList.add('bg-white', 'dark:bg-yojna-darkCard', 'text-yojna-sageDark', 'dark:text-yojna-sage', 'shadow-xs');
-          plusBtn.classList.remove(...inactiveClasses);
-          minusBtn.classList.remove('bg-white', 'dark:bg-yojna-darkCard', 'text-red-600', 'dark:text-red-400', 'shadow-xs');
-          minusBtn.classList.add(...inactiveClasses);
+        msgEl.textContent = message;
+        if (showUndo && undoStack.length > 0) {
+          undoBtn.classList.remove('hidden');
         } else {
-          minusBtn.classList.add('bg-white', 'dark:bg-yojna-darkCard', 'text-red-600', 'dark:text-red-400', 'shadow-xs');
-          minusBtn.classList.remove(...inactiveClasses);
-          plusBtn.classList.remove('bg-white', 'dark:bg-yojna-darkCard', 'text-yojna-sageDark', 'dark:text-yojna-sage', 'shadow-xs');
-          plusBtn.classList.add(...inactiveClasses);
+          undoBtn.classList.add('hidden');
         }
+
+        container.classList.remove('hidden');
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          container.classList.add('hidden');
+        }, 3800);
       }
 
-      function getProjectTotal(project) {
-        if (!project || !Array.isArray(project.items)) return 0;
-        return project.items.reduce((sum, item) => {
-          const val = Math.abs(Number(item.cost) || 0);
-          return sum + (item.sign === '-' ? -val : val);
-        }, 0);
+      function closeAllModals() {
+        document.getElementById('create-modal').classList.add('hidden');
+        document.getElementById('rename-modal').classList.add('hidden');
+        document.getElementById('delete-modal').classList.add('hidden');
+        document.getElementById('sync-modal').classList.add('hidden');
+        document.getElementById('more-menu-dropdown').classList.add('hidden');
+        pendingDeleteProjectId = null;
+      }
+
+      /* ----------------------------------------------------------------------
+         11. Rendering: Icon Picker, Home Dashboard & Project Detail
+         ---------------------------------------------------------------------- */
+      function renderIconPicker(containerId, selectedKey, onSelect) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = Object.keys(PROJECT_ICONS)
+          .map((key) => {
+            const isSelected = key === selectedKey;
+            const activeCls = isSelected
+              ? 'bg-yojna-sage text-white border-yojna-sage'
+              : 'bg-neutral-100 dark:bg-yojna-darkElevated text-neutral-600 dark:text-neutral-300 border-transparent hover:border-neutral-300 dark:hover:border-neutral-600';
+            return `
+              <button
+                type="button"
+                data-icon-key="${key}"
+                title="${key}"
+                class="min-h-[38px] p-2 rounded-xl border flex items-center justify-center transition cursor-pointer ${activeCls}"
+              >
+                ${getIconSvg(key, 'w-4 h-4')}
+              </button>
+            `;
+          })
+          .join('');
+
+        container.querySelectorAll('button[data-icon-key]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const chosen = btn.getAttribute('data-icon-key');
+            onSelect(chosen);
+          });
+        });
       }
 
       function renderCurrentView() {
-        if (activeProjectId && projects.some((p) => p.id === activeProjectId)) {
+        const activeProj = activeProjectId
+          ? projects.find((p) => p.id === activeProjectId)
+          : null;
+
+        if (activeProj) {
           document.getElementById('home-view').classList.add('hidden');
           document.getElementById('detail-view').classList.remove('hidden');
+          document.title = `${activeProj.name} — Yojna`;
           renderProjectDetail();
         } else {
-          activeProjectId = null;
+          // Preserve activeProjectId while initial cloud pull is still loading on reload
+          if (!isSyncing && projects.length > 0 && activeProjectId) {
+            setActiveProject(null);
+          }
           document.getElementById('detail-view').classList.add('hidden');
           document.getElementById('home-view').classList.remove('hidden');
+          document.title = 'Yojna — Project Expense & Management';
           renderHomeView();
         }
         updateUndoButtons();
@@ -2030,16 +1904,10 @@
       function renderHomeView() {
         const ongoingProjects = projects.filter((p) => p.status !== 'done');
         const doneProjects = projects.filter((p) => p.status === 'done');
-
-        const ongoingTotal = ongoingProjects.reduce((sum, p) => sum + getProjectTotal(p), 0);
-        const formattedOngoingTotal = formatCurrency(ongoingTotal);
+        const activeSpend = ongoingProjects.reduce((sum, p) => sum + getProjectTotal(p), 0);
 
         document.getElementById('stat-ongoing-count').textContent = String(ongoingProjects.length);
-        const ongoingTotalEl = document.getElementById('stat-ongoing-total');
-        ongoingTotalEl.textContent = formattedOngoingTotal;
-        // Scale down slightly on mobile only for 8+ figure totals so it never clips
-        ongoingTotalEl.classList.toggle('text-sm', formattedOngoingTotal.length >= 13);
-        ongoingTotalEl.classList.toggle('text-base', formattedOngoingTotal.length < 13);
+        document.getElementById('stat-ongoing-total').textContent = formatCurrency(activeSpend);
         document.getElementById('stat-done-count').textContent = String(doneProjects.length);
 
         document.getElementById('tab-ongoing-count').textContent = String(ongoingProjects.length);
@@ -2047,87 +1915,77 @@
 
         const tabOngoing = document.getElementById('tab-ongoing');
         const tabDone = document.getElementById('tab-done');
-        const activeTabClasses = ['bg-white', 'dark:bg-yojna-darkElevated', 'text-neutral-900', 'dark:text-neutral-100', 'shadow-xs'];
-        const inactiveTabClasses = ['text-neutral-500', 'dark:text-neutral-400', 'hover:text-neutral-800', 'dark:hover:text-neutral-200'];
+        const activeTabCls =
+          'px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-white dark:bg-yojna-darkElevated text-neutral-900 dark:text-neutral-100 shadow-xs';
+        const inactiveTabCls =
+          'px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200';
 
-        if (currentTab === 'ongoing') {
-          tabOngoing.classList.add(...activeTabClasses);
-          tabOngoing.classList.remove(...inactiveTabClasses);
-          tabDone.classList.remove(...activeTabClasses);
-          tabDone.classList.add(...inactiveTabClasses);
-        } else {
-          tabDone.classList.add(...activeTabClasses);
-          tabDone.classList.remove(...inactiveTabClasses);
-          tabOngoing.classList.remove(...activeTabClasses);
-          tabOngoing.classList.add(...inactiveTabClasses);
-        }
+        tabOngoing.className = currentTab === 'ongoing' ? activeTabCls : inactiveTabCls;
+        tabDone.className = currentTab === 'done' ? activeTabCls : inactiveTabCls;
 
-        const visibleProjects = currentTab === 'ongoing' ? ongoingProjects : doneProjects;
-        const gridEl = document.getElementById('projects-grid');
-        const emptyEl = document.getElementById('empty-state');
+        const visibleList = currentTab === 'done' ? doneProjects : ongoingProjects;
+        const grid = document.getElementById('projects-grid');
+        const emptyState = document.getElementById('empty-state');
 
-        if (visibleProjects.length === 0) {
-          gridEl.classList.add('hidden');
-          gridEl.innerHTML = '';
-          emptyEl.classList.remove('hidden');
+        if (visibleList.length === 0) {
+          grid.innerHTML = '';
+          emptyState.classList.remove('hidden');
           document.getElementById('empty-state-title').textContent =
-            currentTab === 'ongoing' ? 'No ongoing projects yet' : 'No completed projects yet';
+            currentTab === 'done' ? 'No completed projects yet' : 'No ongoing projects yet';
           document.getElementById('empty-state-subtitle').textContent =
-            currentTab === 'ongoing'
-              ? 'Create a project to start tracking expenses across your devices.'
-              : 'Completed projects will appear here once marked as done.';
+            currentTab === 'done'
+              ? 'Completed projects will appear here once marked done.'
+              : 'Create a project to start tracking expenses across your devices.';
           return;
         }
 
-        emptyEl.classList.add('hidden');
-        gridEl.classList.remove('hidden');
-
-        gridEl.innerHTML = visibleProjects
-          .map((project) => {
-            const items = Array.isArray(project.items) ? project.items : [];
-            const total = getProjectTotal(project);
-            const isDone = project.status === 'done';
+        emptyState.classList.add('hidden');
+        grid.innerHTML = visibleList
+          .map((proj) => {
+            const total = getProjectTotal(proj);
+            const itemCount = Array.isArray(proj.items) ? proj.items.length : 0;
+            const isDone = proj.status === 'done';
 
             return `
               <div
-                data-open-project="${escapeHtml(project.id)}"
-                class="group rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder hover:border-neutral-300 dark:hover:border-neutral-600 p-4 sm:p-5 transition cursor-pointer"
+                data-project-card="${escapeHtml(proj.id)}"
+                class="group rounded-2xl bg-yojna-lightCard dark:bg-yojna-darkCard border border-yojna-lightBorder dark:border-yojna-darkBorder hover:border-yojna-sage/60 dark:hover:border-yojna-sage/50 p-4 sm:p-5 transition cursor-pointer flex flex-col justify-between"
               >
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex items-center gap-3 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-yojna-darkElevated flex items-center justify-center text-neutral-700 dark:text-neutral-200 shrink-0">
-                      ${getIconSvg(project.icon)}
+                      ${getIconSvg(proj.icon, 'w-5 h-5')}
                     </div>
                     <div class="min-w-0">
                       <h3 class="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-100 truncate">
-                        ${escapeHtml(project.name)}
+                        ${escapeHtml(proj.name)}
                       </h3>
-                      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
-                        ${formatDateDisplay(project.startDate)} &bull; ${items.length} ${items.length === 1 ? 'item' : 'items'}
+                      <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                        ${escapeHtml(formatDisplayDate(proj.startDate))} • ${itemCount} ${itemCount === 1 ? 'item' : 'items'}
                       </p>
                     </div>
                   </div>
 
-                  <div class="flex items-center gap-1 shrink-0">
+                  <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation();">
                     <button
                       type="button"
-                      data-toggle-project="${escapeHtml(project.id)}"
+                      data-toggle-project="${escapeHtml(proj.id)}"
                       title="${isDone ? 'Reopen project' : 'Mark as done'}"
                       class="p-2 rounded-lg text-neutral-400 hover:text-yojna-sage hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
                     >
                       ${
                         isDone
-                          ? '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>'
-                          : '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+                          ? '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>'
+                          : '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
                       }
                     </button>
                     <button
                       type="button"
-                      data-delete-project="${escapeHtml(project.id)}"
+                      data-delete-project="${escapeHtml(proj.id)}"
                       title="Delete project"
                       class="p-2 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
                     >
-                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                       </svg>
@@ -2135,10 +1993,8 @@
                   </div>
                 </div>
 
-                <div class="mt-4 pt-3 border-t border-neutral-100 dark:border-yojna-darkBorder flex items-center justify-between gap-2">
-                  <span class="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
-                    ${isDone ? 'Final Total' : 'Running Total'}
-                  </span>
+                <div class="mt-4 pt-3 border-t border-neutral-100 dark:border-yojna-darkBorder flex items-baseline justify-between">
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Running Total</span>
                   <span class="text-base sm:text-lg font-bold tabular-nums text-neutral-900 dark:text-neutral-100">
                     ${formatCurrency(total)}
                   </span>
@@ -2147,124 +2003,160 @@
             `;
           })
           .join('');
+
+        grid.querySelectorAll('[data-project-card]').forEach((card) => {
+          card.addEventListener('click', () => {
+            const id = card.getAttribute('data-project-card');
+            editingItemId = null;
+            setActiveProject(id, true);
+            renderCurrentView();
+          });
+        });
+
+        grid.querySelectorAll('[data-toggle-project]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-toggle-project');
+            toggleProjectStatus(id);
+          });
+        });
+
+        grid.querySelectorAll('[data-delete-project]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-delete-project');
+            openDeleteModal(id);
+          });
+        });
+      }
+
+      function updateSignToggleButtons(plusId, minusId, signValue) {
+        const plusBtn = document.getElementById(plusId);
+        const minusBtn = document.getElementById(minusId);
+        if (!plusBtn || !minusBtn) return;
+
+        const activePlus =
+          'w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer bg-white dark:bg-yojna-darkCard text-yojna-sageDark dark:text-yojna-sage shadow-xs';
+        const activeMinus =
+          'w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer bg-white dark:bg-yojna-darkCard text-red-600 dark:text-red-400 shadow-xs';
+        const inactive =
+          'w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200';
+
+        plusBtn.className = signValue >= 0 ? activePlus : inactive;
+        minusBtn.className = signValue < 0 ? activeMinus : inactive;
       }
 
       function renderProjectDetail() {
         const project = projects.find((p) => p.id === activeProjectId);
         if (!project) {
-          activeProjectId = null;
+          setActiveProject(null);
           renderCurrentView();
           return;
         }
 
         const items = Array.isArray(project.items) ? project.items : [];
         const total = getProjectTotal(project);
+        const isDone = project.status === 'done';
 
-        document.getElementById('detail-project-icon').innerHTML = getIconSvg(project.icon);
+        document.getElementById('detail-project-icon').innerHTML = getIconSvg(project.icon, 'w-5 h-5');
         document.getElementById('detail-project-title').textContent = project.name;
-        document.getElementById('detail-start-date-text').textContent = formatDateDisplay(project.startDate);
-        document.getElementById('detail-start-date-input').value = project.startDate || getTodayISO();
+        document.getElementById('detail-start-date-text').textContent = formatDisplayDate(project.startDate);
+        document.getElementById('detail-start-date-input').value = project.startDate || getTodayIsoDate();
         document.getElementById('detail-item-count').textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'}`;
         document.getElementById('detail-total-amount').textContent = formatCurrency(total);
-        document.getElementById('detail-toggle-status-text').textContent =
-          project.status === 'done' ? 'Reopen' : 'Mark Done';
+        document.getElementById('detail-toggle-status-text').textContent = isDone ? 'Reopen Project' : 'Mark Done';
 
-        const itemsList = document.getElementById('items-list');
-        const itemsEmpty = document.getElementById('items-empty-state');
+        updateSignToggleButtons('item-sign-plus', 'item-sign-minus', newItemSign);
+
+        const listEl = document.getElementById('items-list');
+        const emptyEl = document.getElementById('items-empty-state');
 
         if (items.length === 0) {
-          itemsEmpty.classList.remove('hidden');
-          itemsList.classList.add('hidden');
-          itemsList.innerHTML = '';
+          listEl.innerHTML = '';
+          emptyEl.classList.remove('hidden');
           return;
         }
 
-        itemsEmpty.classList.add('hidden');
-        itemsList.classList.remove('hidden');
-
-        itemsList.innerHTML = items
+        emptyEl.classList.add('hidden');
+        listEl.innerHTML = items
           .map((item) => {
-            const itemSign = item.sign === '-' ? '-' : '+';
-            const absCost = Math.abs(Number(item.cost) || 0);
+            const cost = Number(item.cost) || 0;
+            const isNegative = cost < 0;
+            const absCost = Math.abs(cost);
 
             if (editingItemId === item.id) {
               return `
-                <div class="p-3.5 sm:px-5 bg-neutral-50 dark:bg-yojna-darkElevated/60 flex flex-wrap sm:flex-nowrap items-center gap-2">
-                  <div class="inline-flex p-0.5 rounded-lg bg-neutral-200/80 dark:bg-yojna-darkCard shrink-0">
-                    <button
-                      type="button"
-                      data-edit-sign="+"
-                      class="w-8 h-8 rounded-md text-xs font-bold cursor-pointer ${
-                        editingItemSign === '+'
-                          ? 'bg-white dark:bg-yojna-darkElevated text-yojna-sageDark dark:text-yojna-sage shadow-xs'
-                          : 'text-neutral-500'
-                      }"
-                    >+</button>
-                    <button
-                      type="button"
-                      data-edit-sign="-"
-                      class="w-8 h-8 rounded-md text-xs font-bold cursor-pointer ${
-                        editingItemSign === '-'
-                          ? 'bg-white dark:bg-yojna-darkElevated text-red-600 dark:text-red-400 shadow-xs'
-                          : 'text-neutral-500'
-                      }"
-                    >&minus;</button>
-                  </div>
-                  <input
-                    id="edit-item-cost-${escapeHtml(item.id)}"
-                    type="number"
-                    inputmode="decimal"
-                    step="0.01"
-                    value="${absCost}"
-                    class="flex-1 sm:flex-none sm:w-28 min-w-[100px] min-h-[40px] px-3 py-1.5 text-base sm:text-sm font-mono tabular-nums rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
-                  />
-                  <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1 min-w-0">
-                    <input
-                      id="edit-item-name-${escapeHtml(item.id)}"
-                      type="text"
-                      value="${escapeHtml(item.name)}"
-                      placeholder="Note"
-                      class="flex-1 min-w-0 min-h-[40px] px-3 py-1.5 text-base sm:text-sm rounded-lg bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder focus:outline-none focus:border-yojna-sage"
-                    />
-                    <button
-                      type="button"
-                      data-save-edit-item="${escapeHtml(item.id)}"
-                      class="min-h-[40px] px-3 py-1.5 rounded-lg bg-yojna-sage text-white text-xs font-semibold cursor-pointer shrink-0"
+                <div class="p-3.5 sm:p-4 bg-neutral-50/70 dark:bg-yojna-darkElevated/50">
+                  <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                    <div
+                      role="group"
+                      aria-label="Edit entry type"
+                      class="inline-flex items-center p-1 rounded-xl bg-neutral-200/70 dark:bg-yojna-darkElevated shrink-0 min-h-[42px]"
                     >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      data-cancel-edit-item="true"
-                      class="min-h-[40px] px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer shrink-0"
-                    >
-                      Cancel
-                    </button>
+                      <button
+                        id="edit-sign-plus"
+                        type="button"
+                        class="w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer"
+                      >+</button>
+                      <button
+                        id="edit-sign-minus"
+                        type="button"
+                        class="w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition cursor-pointer"
+                      >&minus;</button>
+                    </div>
+
+                    <div class="relative flex-1 sm:flex-none sm:w-32 min-w-[110px]">
+                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 font-mono">$</span>
+                      <input
+                        id="edit-item-cost"
+                        type="number"
+                        inputmode="decimal"
+                        step="0.01"
+                        value="${absCost.toFixed(2)}"
+                        class="w-full min-h-[42px] pl-6 pr-2.5 py-2 text-base sm:text-sm font-mono tabular-nums rounded-xl bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder text-neutral-900 dark:text-neutral-100 focus:outline-none focus:border-yojna-sage"
+                      />
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full sm:w-auto sm:flex-1 min-w-0">
+                      <input
+                        id="edit-item-name"
+                        type="text"
+                        value="${escapeHtml(item.name)}"
+                        placeholder="Note"
+                        class="flex-1 min-w-0 min-h-[42px] px-3 py-2 text-base sm:text-sm rounded-xl bg-white dark:bg-yojna-darkCard border border-neutral-300 dark:border-yojna-darkBorder text-neutral-900 dark:text-neutral-100 focus:outline-none focus:border-yojna-sage"
+                      />
+
+                      <button
+                        type="button"
+                        data-save-edit="${escapeHtml(item.id)}"
+                        class="min-h-[42px] px-3.5 py-2 rounded-xl bg-yojna-sage hover:bg-yojna-sageDark text-white text-xs font-semibold transition cursor-pointer shrink-0"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        id="cancel-edit-item"
+                        class="min-h-[42px] px-3 py-2 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200/70 dark:hover:bg-yojna-darkElevated transition cursor-pointer shrink-0"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
               `;
             }
 
             return `
-              <div class="p-3.5 sm:px-5 flex items-center justify-between gap-3 hover:bg-neutral-50/70 dark:hover:bg-yojna-darkElevated/40 transition">
-                <div class="min-w-0">
-                  <p class="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+              <div class="flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 hover:bg-neutral-50/60 dark:hover:bg-yojna-darkElevated/30 transition">
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100 break-words">
                     ${escapeHtml(item.name)}
                   </p>
-                  ${
-                    item.note
-                      ? `<p class="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5">${escapeHtml(item.note)}</p>`
-                      : ''
-                  }
                 </div>
 
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-                  <span class="text-sm sm:text-base font-bold font-mono tabular-nums ${
-                    itemSign === '-'
-                      ? 'text-red-600 dark:text-red-400'
-                      : 'text-neutral-900 dark:text-neutral-100'
+                  <span class="text-sm sm:text-base font-semibold font-mono tabular-nums ${
+                    isNegative ? 'text-red-600 dark:text-red-400' : 'text-neutral-900 dark:text-neutral-100'
                   }">
-                    ${itemSign === '-' ? '-' : '+'}${formatCurrency(absCost)}
+                    ${formatCurrency(cost)}
                   </span>
 
                   <div class="flex items-center gap-0.5 no-print">
@@ -2274,7 +2166,7 @@
                       title="Edit item"
                       class="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
                     >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 20h9" />
                         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                       </svg>
@@ -2285,7 +2177,7 @@
                       title="Delete item"
                       class="p-2 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-yojna-darkElevated transition cursor-pointer"
                     >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18" />
                         <line x1="6" y1="6" x2="18" y2="18" />
                       </svg>
@@ -2296,74 +2188,114 @@
             `;
           })
           .join('');
-      }
 
-      /* ----------------------------------------------------------------------
-         11. Icon Picker & Modal Helpers
-         ---------------------------------------------------------------------- */
-      function renderIconPicker(containerId, selectedId, onSelect) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        container.innerHTML = AVAILABLE_ICONS.map((icon) => {
-          const isSelected = icon.id === selectedId;
-          return `
-            <button
-              type="button"
-              data-pick-icon="${icon.id}"
-              title="${icon.label}"
-              class="h-10 sm:h-9 rounded-xl flex items-center justify-center border transition cursor-pointer ${
-                isSelected
-                  ? 'bg-yojna-sage/15 border-yojna-sage text-yojna-sageDark dark:text-yojna-sage'
-                  : 'bg-neutral-100 dark:bg-yojna-darkElevated border-transparent text-neutral-600 dark:text-neutral-300 hover:border-neutral-300 dark:hover:border-neutral-600'
-              }"
-            >
-              ${icon.svg}
-            </button>
-          `;
-        }).join('');
+        if (editingItemId) {
+          updateSignToggleButtons('edit-sign-plus', 'edit-sign-minus', editItemSign);
 
-        container.querySelectorAll('[data-pick-icon]').forEach((btn) => {
+          const editPlus = document.getElementById('edit-sign-plus');
+          const editMinus = document.getElementById('edit-sign-minus');
+          if (editPlus) {
+            editPlus.addEventListener('click', () => {
+              editItemSign = 1;
+              updateSignToggleButtons('edit-sign-plus', 'edit-sign-minus', editItemSign);
+            });
+          }
+          if (editMinus) {
+            editMinus.addEventListener('click', () => {
+              editItemSign = -1;
+              updateSignToggleButtons('edit-sign-plus', 'edit-sign-minus', editItemSign);
+            });
+          }
+
+          const saveBtn = listEl.querySelector('[data-save-edit]');
+          if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+              const id = saveBtn.getAttribute('data-save-edit');
+              saveEditedItem(id);
+            });
+          }
+
+          const cancelBtn = document.getElementById('cancel-edit-item');
+          if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+              editingItemId = null;
+              renderProjectDetail();
+            });
+          }
+        }
+
+        listEl.querySelectorAll('[data-edit-item]').forEach((btn) => {
           btn.addEventListener('click', () => {
-            onSelect(btn.getAttribute('data-pick-icon'));
+            const id = btn.getAttribute('data-edit-item');
+            const target = items.find((it) => it.id === id);
+            if (!target) return;
+            editingItemId = id;
+            editItemSign = (Number(target.cost) || 0) < 0 ? -1 : 1;
+            renderProjectDetail();
+          });
+        });
+
+        listEl.querySelectorAll('[data-delete-item]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-delete-item');
+            deleteExpenseItem(id);
           });
         });
       }
 
-      function closeAllModals() {
-        ['create-modal', 'rename-modal', 'delete-modal', 'sync-modal'].forEach((id) => {
-          const el = document.getElementById(id);
-          if (el) el.classList.add('hidden');
-        });
-        const menu = document.getElementById('more-menu-dropdown');
-        if (menu) menu.classList.add('hidden');
-      }
+      /* ----------------------------------------------------------------------
+         12. Project & Expense Item CRUD Actions
+         ---------------------------------------------------------------------- */
+      function createProject(name, startDate, icon) {
+        const cleanName = String(name || '').trim();
+        if (!cleanName) return;
 
-      function openCreateModal() {
-        selectedCreateIcon = 'folder';
-        document.getElementById('create-project-name').value = '';
-        document.getElementById('create-project-date').value = getTodayISO();
-        const refreshPicker = (iconId) => {
-          selectedCreateIcon = iconId;
-          renderIconPicker('create-icon-grid', selectedCreateIcon, refreshPicker);
+        pushUndoSnapshot(`Create "${cleanName}"`);
+        const newProject = {
+          id: generateId('proj'),
+          name: cleanName,
+          startDate: startDate || getTodayIsoDate(),
+          icon: icon || 'folder',
+          status: 'ongoing',
+          items: [],
+          createdAt: new Date().toISOString(),
         };
-        renderIconPicker('create-icon-grid', selectedCreateIcon, refreshPicker);
-        document.getElementById('create-modal').classList.remove('hidden');
-        setTimeout(() => document.getElementById('create-project-name').focus(), 40);
+
+        projects.unshift(newProject);
+        setCurrentTab('ongoing');
+        setActiveProject(newProject.id, true);
+        saveProjects(true);
+        closeAllModals();
+        renderCurrentView();
+        showToast('Project created', true);
       }
 
-      function openRenameModal() {
-        const project = projects.find((p) => p.id === activeProjectId);
+      function updateProjectMeta(projectId, name, startDate, icon) {
+        const project = projects.find((p) => p.id === projectId);
         if (!project) return;
-        selectedRenameIcon = project.icon || 'folder';
-        document.getElementById('rename-project-name').value = project.name;
-        document.getElementById('rename-project-date').value = project.startDate || getTodayISO();
-        const refreshPicker = (iconId) => {
-          selectedRenameIcon = iconId;
-          renderIconPicker('rename-icon-grid', selectedRenameIcon, refreshPicker);
-        };
-        renderIconPicker('rename-icon-grid', selectedRenameIcon, refreshPicker);
-        document.getElementById('rename-modal').classList.remove('hidden');
-        setTimeout(() => document.getElementById('rename-project-name').focus(), 40);
+        const cleanName = String(name || '').trim();
+        if (!cleanName) return;
+
+        pushUndoSnapshot(`Edit "${project.name}"`);
+        project.name = cleanName;
+        project.startDate = startDate || project.startDate;
+        project.icon = icon || project.icon;
+        saveProjects(true);
+        closeAllModals();
+        renderCurrentView();
+        showToast('Project updated', true);
+      }
+
+      function toggleProjectStatus(projectId) {
+        const project = projects.find((p) => p.id === projectId);
+        if (!project) return;
+
+        const nextStatus = project.status === 'done' ? 'ongoing' : 'done';
+        pushUndoSnapshot(`${nextStatus === 'done' ? 'Complete' : 'Reopen'} "${project.name}"`);
+        project.status = nextStatus;
+        saveProjects(true);
+        renderCurrentView();
+        showToast(nextStatus === 'done' ? 'Marked as done' : 'Project reopened', true);
       }
 
       function openDeleteModal(projectId) {
@@ -2374,214 +2306,155 @@
         document.getElementById('delete-modal').classList.remove('hidden');
       }
 
-      function openSyncModal() {
-        updateSyncIndicatorUI();
-        const tokenInput = document.getElementById('manual-token-input');
-        if (tokenInput && !getCleanEmbeddedVault()) {
-          tokenInput.value = getStoredGitHubToken();
-        }
-        document.getElementById('sync-modal').classList.remove('hidden');
-      }
-
-      /* ----------------------------------------------------------------------
-         12. Project & Item Actions
-         ---------------------------------------------------------------------- */
-      function handleCreateProject(e) {
-        e.preventDefault();
-        const name = document.getElementById('create-project-name').value.trim();
-        const startDate = document.getElementById('create-project-date').value || getTodayISO();
-        if (!name) return;
-
-        recordUndoSnapshot(`Create "${name}"`);
-        const newProj = {
-          id: generateId('proj'),
-          name,
-          startDate,
-          icon: selectedCreateIcon,
-          status: 'ongoing',
-          items: [],
-          createdAt: new Date().toISOString(),
-        };
-
-        projects.unshift(newProj);
-        currentTab = 'ongoing';
-        activeProjectId = newProj.id;
-        saveProjects(true);
-        closeAllModals();
-        renderCurrentView();
-        showToast(`Created "${name}"`, true);
-      }
-
-      function handleRenameProject(e) {
-        e.preventDefault();
-        const project = projects.find((p) => p.id === activeProjectId);
-        if (!project) return;
-
-        const newName = document.getElementById('rename-project-name').value.trim();
-        const newDate = document.getElementById('rename-project-date').value || project.startDate;
-        if (!newName) return;
-
-        recordUndoSnapshot(`Edit "${project.name}"`);
-        project.name = newName;
-        project.startDate = newDate;
-        project.icon = selectedRenameIcon;
-
-        saveProjects(true);
-        closeAllModals();
-        renderCurrentView();
-        showToast('Project updated', true);
-      }
-
       function confirmDeleteProject() {
         if (!pendingDeleteProjectId) return;
         const idx = projects.findIndex((p) => p.id === pendingDeleteProjectId);
-        if (idx === -1) return;
+        if (idx === -1) {
+          closeAllModals();
+          return;
+        }
 
-        const deletedName = projects[idx].name;
-        recordUndoSnapshot(`Delete "${deletedName}"`);
+        const removed = projects[idx];
+        pushUndoSnapshot(`Delete "${removed.name}"`);
         projects.splice(idx, 1);
 
-        if (activeProjectId === pendingDeleteProjectId) {
-          activeProjectId = null;
+        if (activeProjectId === removed.id) {
+          setActiveProject(null, true);
         }
-        pendingDeleteProjectId = null;
-
         saveProjects(true);
         closeAllModals();
         renderCurrentView();
-        showToast(`Deleted "${deletedName}"`, true);
+        showToast(`Deleted "${removed.name}"`, true);
       }
 
-      function toggleProjectStatus(projectId) {
-        const project = projects.find((p) => p.id === projectId);
-        if (!project) return;
-
-        const nextStatus = project.status === 'done' ? 'ongoing' : 'done';
-        recordUndoSnapshot(nextStatus === 'done' ? `Complete "${project.name}"` : `Reopen "${project.name}"`);
-        project.status = nextStatus;
-
-        saveProjects(true);
-        renderCurrentView();
-        showToast(nextStatus === 'done' ? 'Marked as Done' : 'Moved to Ongoing', true);
-      }
-
-      function handleAddItem(e) {
-        e.preventDefault();
+      function addExpenseItem(rawAmount, rawNote) {
         const project = projects.find((p) => p.id === activeProjectId);
         if (!project) return;
 
-        const nameInput = document.getElementById('item-name-input');
-        const costInput = document.getElementById('item-cost-input');
+        const numeric = Math.abs(parseFloat(rawAmount));
+        const cleanNote = String(rawNote || '').trim();
+        if (Number.isNaN(numeric) || numeric === 0 || !cleanNote) return;
 
-        const name = nameInput.value.trim();
-        const rawCost = parseFloat(costInput.value);
+        const signedCost = Number((numeric * newItemSign).toFixed(2));
+        pushUndoSnapshot(`Add "${cleanNote}"`);
 
-        if (!name || isNaN(rawCost)) return;
-
-        // If user typed a negative number directly, treat it as '-' sign with positive magnitude
-        const finalSign = rawCost < 0 ? '-' : selectedItemSign;
-        const absCost = Math.round(Math.abs(rawCost) * 100) / 100;
-
-        recordUndoSnapshot(`Add "${name}"`);
         if (!Array.isArray(project.items)) project.items = [];
-        project.items.push({
+        project.items.unshift({
           id: generateId('item'),
-          name,
-          sign: finalSign,
-          cost: absCost,
-          note: '',
+          name: cleanNote,
+          cost: signedCost,
+          createdAt: new Date().toISOString(),
         });
-
-        nameInput.value = '';
-        costInput.value = '';
-        setItemSign('+');
-        costInput.focus();
 
         saveProjects(true);
         renderProjectDetail();
-        showToast(`Added "${name}"`, true);
+        showToast('Item added', true);
       }
 
-      function copyProjectSummaryToClipboard() {
+      function saveEditedItem(itemId) {
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project || !Array.isArray(project.items)) return;
+
+        const item = project.items.find((it) => it.id === itemId);
+        if (!item) return;
+
+        const costInput = document.getElementById('edit-item-cost');
+        const nameInput = document.getElementById('edit-item-name');
+        const numeric = Math.abs(parseFloat(costInput ? costInput.value : ''));
+        const cleanNote = String(nameInput ? nameInput.value : '').trim();
+
+        if (Number.isNaN(numeric) || numeric === 0 || !cleanNote) {
+          showToast('Enter a valid amount and note');
+          return;
+        }
+
+        pushUndoSnapshot(`Edit "${item.name}"`);
+        item.cost = Number((numeric * editItemSign).toFixed(2));
+        item.name = cleanNote;
+        editingItemId = null;
+
+        saveProjects(true);
+        renderProjectDetail();
+        showToast('Item updated', true);
+      }
+
+      function deleteExpenseItem(itemId) {
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (!project || !Array.isArray(project.items)) return;
+
+        const idx = project.items.findIndex((it) => it.id === itemId);
+        if (idx === -1) return;
+
+        const removed = project.items[idx];
+        pushUndoSnapshot(`Delete "${removed.name}"`);
+        project.items.splice(idx, 1);
+
+        if (editingItemId === itemId) editingItemId = null;
+        saveProjects(true);
+        renderProjectDetail();
+        showToast('Item deleted', true);
+      }
+
+      async function copyProjectSummary() {
         const project = projects.find((p) => p.id === activeProjectId);
         if (!project) return;
 
         const items = Array.isArray(project.items) ? project.items : [];
         const lines = [
-          `${project.name} (${formatDateDisplay(project.startDate)})`,
-          '----------------------------------------',
-          ...items.map((it) => {
-            const sign = it.sign === '-' ? '-' : '+';
-            return `• ${it.name}${it.note ? ` (${it.note})` : ''}: ${sign}${formatCurrency(Math.abs(Number(it.cost) || 0))}`;
-          }),
-          '----------------------------------------',
+          `${project.name} (${formatDisplayDate(project.startDate)})`,
           `Total: ${formatCurrency(getProjectTotal(project))}`,
+          '----------------------------------------',
+          ...items.map((it) => `• ${it.name}: ${formatCurrency(it.cost)}`),
         ];
-        const summary = lines.join('\n');
 
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard
-            .writeText(summary)
-            .then(() => showToast('Summary copied to clipboard'))
-            .catch(() => fallbackCopyText(summary));
-        } else {
-          fallbackCopyText(summary);
-        }
-      }
-
-      function fallbackCopyText(text) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
         try {
-          document.execCommand('copy');
+          await navigator.clipboard.writeText(lines.join('\n'));
           showToast('Summary copied to clipboard');
         } catch (_) {
-          showToast('Could not copy summary');
+          showToast('Unable to copy summary');
         }
-        document.body.removeChild(ta);
       }
 
       /* ----------------------------------------------------------------------
-         13. Event Bindings
+         13. Event Listeners
          ---------------------------------------------------------------------- */
       function bindEvents() {
-        // One-Time Passphrase Unlock Form
+        // One-time Passphrase Unlock Gate
         document.getElementById('gate-unlock-form').addEventListener('submit', async (e) => {
           e.preventDefault();
           const input = document.getElementById('gate-passphrase-input');
           const errEl = document.getElementById('gate-error-msg');
           const btn = document.getElementById('gate-unlock-btn');
-          const passphrase = input.value.trim();
-          const embeddedVault = getCleanEmbeddedVault();
 
-          if (!passphrase || !embeddedVault) return;
+          const passphrase = input.value;
+          if (!passphrase) return;
 
           btn.disabled = true;
-          btn.textContent = 'Unlocking...';
+          btn.textContent = 'Unlocking…';
           errEl.classList.add('hidden');
 
           try {
-            const decryptedToken = await decryptTokenWithPassphrase(embeddedVault, passphrase);
-            if (!decryptedToken) throw new Error('Empty token');
+            const decryptedToken = await decryptEmbeddedVault(passphrase);
+            if (!decryptedToken || decryptedToken.length < 10) {
+              throw new Error('Decrypted token invalid.');
+            }
 
-            // Purge any offline projects so cloud Gist is the single source of truth
-            localStorage.removeItem(STORAGE_KEY);
             localStorage.setItem(GH_TOKEN_KEY, decryptedToken);
-            localStorage.setItem(GH_VAULT_SIG_KEY, computeVaultSignature(embeddedVault));
-
+            localStorage.setItem(GH_VAULT_SIG_KEY, getCleanEmbeddedVault());
+            localStorage.removeItem(STORAGE_KEY);
+            projects = [];
             input.value = '';
-            checkPassphraseGate();
+
+            document.getElementById('passphrase-gate').classList.add('hidden');
             updateSyncIndicatorUI();
+            renderCurrentView();
+            startLiveSyncLoop();
             await pullProjectsFromGist(false);
-          } catch (err) {
+          } catch (_) {
             errEl.textContent = 'Incorrect passphrase. Please try again.';
             errEl.classList.remove('hidden');
-            triggerShake(input);
-            input.select();
+            input.classList.add('animate-shake');
+            setTimeout(() => input.classList.remove('animate-shake'), 400);
           } finally {
             btn.disabled = false;
             btn.textContent = 'Unlock';
@@ -2592,45 +2465,53 @@
         document.getElementById('undo-btn-home').addEventListener('click', performUndo);
         document.getElementById('undo-btn-detail').addEventListener('click', performUndo);
         document.getElementById('toast-undo-btn').addEventListener('click', performUndo);
-        document.getElementById('theme-toggle-btn').addEventListener('click', cycleTheme);
-        document.getElementById('sync-modal-btn').addEventListener('click', openSyncModal);
+        document.getElementById('theme-toggle-btn').addEventListener('click', cycleThemeMode);
 
-        // Keyboard Ctrl+Z / Cmd+Z Undo
+        // Keyboard Shortcut Ctrl+Z / Cmd+Z for Undo
         document.addEventListener('keydown', (e) => {
+          const tag = (e.target && e.target.tagName) || '';
+          if (tag === 'INPUT' || tag === 'TEXTAREA') return;
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
-            const tag = (document.activeElement && document.activeElement.tagName) || '';
-            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-            if (undoStack.length > 0) {
-              e.preventDefault();
-              performUndo();
-            }
-          }
-          if (e.key === 'Escape') {
-            closeAllModals();
+            e.preventDefault();
+            performUndo();
           }
         });
 
-        // Three-Dot Backup Menu
-        document.getElementById('more-menu-btn').addEventListener('click', (e) => {
+        // More Menu Dropdown (Export / Import JSON)
+        const moreBtn = document.getElementById('more-menu-btn');
+        const moreDropdown = document.getElementById('more-menu-dropdown');
+        moreBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          document.getElementById('more-menu-dropdown').classList.toggle('hidden');
+          moreDropdown.classList.toggle('hidden');
         });
+
         document.addEventListener('click', () => {
-          document.getElementById('more-menu-dropdown').classList.add('hidden');
+          moreDropdown.classList.add('hidden');
         });
 
         document.getElementById('export-json-btn').addEventListener('click', () => {
-          const blob = new Blob([JSON.stringify(projects, null, 2)], { type: 'application/json' });
+          const payload = JSON.stringify(
+            {
+              app: 'Yojna',
+              exportedAt: new Date().toISOString(),
+              projects,
+            },
+            null,
+            2
+          );
+          const blob = new Blob([payload], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `yojna-backup-${getTodayISO()}.json`;
+          a.download = `yojna-backup-${getTodayIsoDate()}.json`;
           a.click();
           URL.revokeObjectURL(url);
+          moreDropdown.classList.add('hidden');
           showToast('Backup exported');
         });
 
         document.getElementById('import-json-btn').addEventListener('click', () => {
+          moreDropdown.classList.add('hidden');
           document.getElementById('import-json-input').click();
         });
 
@@ -2638,228 +2519,238 @@
           const file = e.target.files && e.target.files[0];
           if (!file) return;
           const reader = new FileReader();
-          reader.onload = function (ev) {
+          reader.onload = () => {
             try {
-              const parsed = JSON.parse(ev.target.result);
-              const list = Array.isArray(parsed) ? parsed : Array.isArray(parsed.projects) ? parsed.projects : null;
-              if (!list) throw new Error('Invalid JSON format');
-              recordUndoSnapshot('Import JSON backup');
-              projects = list.filter((p) => !isSampleProject(p));
+              const parsed = JSON.parse(String(reader.result || ''));
+              const imported = Array.isArray(parsed)
+                ? parsed
+                : Array.isArray(parsed.projects)
+                ? parsed.projects
+                : null;
+              if (!imported) throw new Error('Invalid JSON format');
+
+              pushUndoSnapshot('Import backup');
+              projects = imported.filter((p) => p && typeof p === 'object' && p.name);
               saveProjects(true);
               renderCurrentView();
               showToast(`Imported ${projects.length} projects`, true);
             } catch (_) {
-              showToast('Invalid backup file');
+              showToast('Invalid JSON backup file');
+            } finally {
+              e.target.value = '';
             }
           };
           reader.readAsText(file);
-          e.target.value = '';
         });
 
-        // Tabs & New Project
-        document.getElementById('tab-ongoing').addEventListener('click', () => {
-          currentTab = 'ongoing';
-          renderHomeView();
+        // Cloud Sync Modal
+        document.getElementById('sync-modal-btn').addEventListener('click', () => {
+          updateSyncIndicatorUI();
+          document.getElementById('sync-modal').classList.remove('hidden');
         });
-        document.getElementById('tab-done').addEventListener('click', () => {
-          currentTab = 'done';
-          renderHomeView();
-        });
-        document.getElementById('new-project-btn').addEventListener('click', openCreateModal);
-
-        // Home Project Grid Delegated Clicks
-        document.getElementById('projects-grid').addEventListener('click', (e) => {
-          const toggleBtn = e.target.closest('[data-toggle-project]');
-          if (toggleBtn) {
-            toggleProjectStatus(toggleBtn.getAttribute('data-toggle-project'));
-            return;
-          }
-          const deleteBtn = e.target.closest('[data-delete-project]');
-          if (deleteBtn) {
-            openDeleteModal(deleteBtn.getAttribute('data-delete-project'));
-            return;
-          }
-          const card = e.target.closest('[data-open-project]');
-          if (card) {
-            activeProjectId = card.getAttribute('data-open-project');
-            editingItemId = null;
-            renderCurrentView();
-          }
-        });
-
-        // Detail View Navigation & Actions
-        document.getElementById('back-home-btn').addEventListener('click', () => {
-          activeProjectId = null;
-          editingItemId = null;
-          renderCurrentView();
-        });
-
-        document.getElementById('detail-start-date-btn').addEventListener('click', () => {
-          const btn = document.getElementById('detail-start-date-btn');
-          const input = document.getElementById('detail-start-date-input');
-          btn.classList.add('hidden');
-          input.classList.remove('hidden');
-          input.focus();
-        });
-
-        document.getElementById('detail-start-date-input').addEventListener('change', (e) => {
-          const project = projects.find((p) => p.id === activeProjectId);
-          if (project && e.target.value) {
-            recordUndoSnapshot('Change start date');
-            project.startDate = e.target.value;
-            saveProjects(true);
-            renderProjectDetail();
-            showToast('Start date updated', true);
-          }
-        });
-
-        document.getElementById('detail-start-date-input').addEventListener('blur', () => {
-          document.getElementById('detail-start-date-input').classList.add('hidden');
-          document.getElementById('detail-start-date-btn').classList.remove('hidden');
-        });
-
-        document.getElementById('detail-copy-btn').addEventListener('click', copyProjectSummaryToClipboard);
-        document.getElementById('detail-print-btn').addEventListener('click', () => window.print());
-        document.getElementById('detail-toggle-status-btn').addEventListener('click', () => {
-          if (activeProjectId) toggleProjectStatus(activeProjectId);
-        });
-        document.getElementById('detail-rename-btn').addEventListener('click', openRenameModal);
-        document.getElementById('detail-delete-btn').addEventListener('click', () => {
-          if (activeProjectId) openDeleteModal(activeProjectId);
-        });
-
-        // Add Expense Item Form & Sign Toggle
-        document.getElementById('item-sign-plus').addEventListener('click', () => setItemSign('+'));
-        document.getElementById('item-sign-minus').addEventListener('click', () => setItemSign('-'));
-        document.getElementById('add-item-form').addEventListener('submit', handleAddItem);
-
-        // Items List Delegated Actions (Edit / Save Edit / Delete)
-        document.getElementById('items-list').addEventListener('click', (e) => {
-          const project = projects.find((p) => p.id === activeProjectId);
-          if (!project) return;
-
-          const editSignBtn = e.target.closest('[data-edit-sign]');
-          if (editSignBtn) {
-            editingItemSign = editSignBtn.getAttribute('data-edit-sign') === '-' ? '-' : '+';
-            renderProjectDetail();
-            return;
-          }
-
-          const editBtn = e.target.closest('[data-edit-item]');
-          if (editBtn) {
-            editingItemId = editBtn.getAttribute('data-edit-item');
-            const targetItem = project.items.find((it) => it.id === editingItemId);
-            editingItemSign = targetItem && targetItem.sign === '-' ? '-' : '+';
-            renderProjectDetail();
-            return;
-          }
-
-          const cancelEditBtn = e.target.closest('[data-cancel-edit-item]');
-          if (cancelEditBtn) {
-            editingItemId = null;
-            renderProjectDetail();
-            return;
-          }
-
-          const saveEditBtn = e.target.closest('[data-save-edit-item]');
-          if (saveEditBtn) {
-            const itemId = saveEditBtn.getAttribute('data-save-edit-item');
-            const item = project.items.find((it) => it.id === itemId);
-            if (!item) return;
-
-            const newName = document.getElementById(`edit-item-name-${itemId}`).value.trim();
-            const rawNewCost = parseFloat(document.getElementById(`edit-item-cost-${itemId}`).value);
-            if (!newName || isNaN(rawNewCost)) return;
-
-            recordUndoSnapshot(`Edit "${item.name}"`);
-            item.name = newName;
-            item.sign = rawNewCost < 0 ? '-' : editingItemSign;
-            item.cost = Math.round(Math.abs(rawNewCost) * 100) / 100;
-            editingItemId = null;
-
-            saveProjects(true);
-            renderProjectDetail();
-            showToast('Item updated', true);
-            return;
-          }
-
-          const deleteBtn = e.target.closest('[data-delete-item]');
-          if (deleteBtn) {
-            const itemId = deleteBtn.getAttribute('data-delete-item');
-            const idx = project.items.findIndex((it) => it.id === itemId);
-            if (idx === -1) return;
-
-            const removed = project.items[idx];
-            recordUndoSnapshot(`Delete "${removed.name}"`);
-            project.items.splice(idx, 1);
-
-            saveProjects(true);
-            renderProjectDetail();
-            showToast(`Deleted "${removed.name}"`, true);
-          }
-        });
-
-        // Create & Edit & Delete Modals
-        document.getElementById('create-project-form').addEventListener('submit', handleCreateProject);
-        document.getElementById('close-create-modal').addEventListener('click', closeAllModals);
-        document.getElementById('cancel-create-modal').addEventListener('click', closeAllModals);
-
-        document.getElementById('rename-project-form').addEventListener('submit', handleRenameProject);
-        document.getElementById('close-rename-modal').addEventListener('click', closeAllModals);
-        document.getElementById('cancel-rename-modal').addEventListener('click', closeAllModals);
-
-        document.getElementById('confirm-delete-btn').addEventListener('click', confirmDeleteProject);
-        document.getElementById('cancel-delete-modal').addEventListener('click', closeAllModals);
-
-        // Cloud Sync Modal Controls
         document.getElementById('close-sync-modal').addEventListener('click', closeAllModals);
 
         document.getElementById('sync-now-btn').addEventListener('click', async () => {
-          await pullProjectsFromGist(false, true);
+          await pushProjectsToGist(true);
+          await pullProjectsFromGist(false);
         });
 
         document.getElementById('lock-device-btn').addEventListener('click', lockCurrentDevice);
 
         document.getElementById('manual-sync-form').addEventListener('submit', async (e) => {
           e.preventDefault();
-          const tokenVal = document.getElementById('manual-token-input').value.trim();
-          if (!tokenVal) return;
-          localStorage.removeItem(STORAGE_KEY);
+          const token = document.getElementById('manual-token-input').value.trim();
+          if (!token) return;
+          localStorage.setItem(GH_TOKEN_KEY, token);
+          localStorage.removeItem(GH_GIST_ID_KEY);
           localStorage.removeItem(GH_GIST_ETAG_KEY);
-          localStorage.setItem(GH_TOKEN_KEY, tokenVal);
+          document.getElementById('manual-token-input').value = '';
           updateSyncIndicatorUI();
-          await pullProjectsFromGist(false, true);
+          startLiveSyncLoop();
+          await pullProjectsFromGist(false);
         });
 
         document.getElementById('manual-sync-now-btn').addEventListener('click', async () => {
-          await pullProjectsFromGist(false, true);
+          await pushProjectsToGist(true);
+          await pullProjectsFromGist(false);
         });
 
         document.getElementById('disconnect-manual-sync-btn').addEventListener('click', () => {
+          stopLiveSyncLoop();
           localStorage.removeItem(GH_TOKEN_KEY);
           localStorage.removeItem(GH_GIST_ID_KEY);
           localStorage.removeItem(GH_GIST_ETAG_KEY);
-          localStorage.removeItem(GH_LAST_SYNC_KEY);
-          setSyncError('');
+          lastSyncError = '';
           updateSyncIndicatorUI();
-          showToast('Cloud sync disconnected');
+          showToast('Disconnected cloud sync');
         });
 
-        // Flush pending saves immediately on hide & auto-pull latest changes when returning
-        document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'hidden') {
-            flushPendingSync();
-          } else if (
-            document.visibilityState === 'visible' &&
-            isDeviceUnlockedForVault() &&
-            getStoredGitHubToken() &&
-            Date.now() - lastPullTimestamp > 2500
-          ) {
-            pullProjectsFromGist(true, false);
+        // Filter Tabs
+        document.getElementById('tab-ongoing').addEventListener('click', () => {
+          setCurrentTab('ongoing');
+          renderHomeView();
+        });
+        document.getElementById('tab-done').addEventListener('click', () => {
+          setCurrentTab('done');
+          renderHomeView();
+        });
+
+        // Create Project Modal
+        document.getElementById('new-project-btn').addEventListener('click', () => {
+          document.getElementById('create-project-name').value = '';
+          document.getElementById('create-project-date').value = getTodayIsoDate();
+          selectedCreateIcon = 'folder';
+          const refreshCreateIcons = () =>
+            renderIconPicker('create-icon-grid', selectedCreateIcon, (chosen) => {
+              selectedCreateIcon = chosen;
+              refreshCreateIcons();
+            });
+          refreshCreateIcons();
+          document.getElementById('create-modal').classList.remove('hidden');
+          setTimeout(() => document.getElementById('create-project-name').focus(), 40);
+        });
+
+        document.getElementById('close-create-modal').addEventListener('click', closeAllModals);
+        document.getElementById('cancel-create-modal').addEventListener('click', closeAllModals);
+        document.getElementById('create-project-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const name = document.getElementById('create-project-name').value;
+          const date = document.getElementById('create-project-date').value;
+          createProject(name, date, selectedCreateIcon);
+        });
+
+        // Edit / Rename Project Modal
+        document.getElementById('detail-rename-btn').addEventListener('click', () => {
+          const project = projects.find((p) => p.id === activeProjectId);
+          if (!project) return;
+          document.getElementById('rename-project-name').value = project.name;
+          document.getElementById('rename-project-date').value = project.startDate || getTodayIsoDate();
+          selectedRenameIcon = project.icon || 'folder';
+          const refreshRenameIcons = () =>
+            renderIconPicker('rename-icon-grid', selectedRenameIcon, (chosen) => {
+              selectedRenameIcon = chosen;
+              refreshRenameIcons();
+            });
+          refreshRenameIcons();
+          document.getElementById('rename-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('close-rename-modal').addEventListener('click', closeAllModals);
+        document.getElementById('cancel-rename-modal').addEventListener('click', closeAllModals);
+        document.getElementById('rename-project-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          if (!activeProjectId) return;
+          const name = document.getElementById('rename-project-name').value;
+          const date = document.getElementById('rename-project-date').value;
+          updateProjectMeta(activeProjectId, name, date, selectedRenameIcon);
+        });
+
+        // Delete Project Modal
+        document.getElementById('cancel-delete-modal').addEventListener('click', closeAllModals);
+        document.getElementById('confirm-delete-btn').addEventListener('click', confirmDeleteProject);
+
+        // Detail View Header Actions
+        document.getElementById('back-home-btn').addEventListener('click', () => {
+          editingItemId = null;
+          setActiveProject(null, true);
+          renderCurrentView();
+        });
+
+        document.getElementById('detail-copy-btn').addEventListener('click', copyProjectSummary);
+        document.getElementById('detail-print-btn').addEventListener('click', () => window.print());
+        document.getElementById('detail-toggle-status-btn').addEventListener('click', () => {
+          if (activeProjectId) toggleProjectStatus(activeProjectId);
+        });
+        document.getElementById('detail-delete-btn').addEventListener('click', () => {
+          if (activeProjectId) openDeleteModal(activeProjectId);
+        });
+
+        // Inline Start Date Picker in Detail View
+        const startDateBtn = document.getElementById('detail-start-date-btn');
+        const startDateInput = document.getElementById('detail-start-date-input');
+        startDateBtn.addEventListener('click', () => {
+          startDateBtn.classList.add('hidden');
+          startDateInput.classList.remove('hidden');
+          startDateInput.focus();
+        });
+        startDateInput.addEventListener('change', () => {
+          const project = projects.find((p) => p.id === activeProjectId);
+          if (project && startDateInput.value) {
+            pushUndoSnapshot('Change start date');
+            project.startDate = startDateInput.value;
+            saveProjects(true);
+            renderProjectDetail();
+            showToast('Start date updated', true);
+          }
+          startDateInput.classList.add('hidden');
+          startDateBtn.classList.remove('hidden');
+        });
+        startDateInput.addEventListener('blur', () => {
+          startDateInput.classList.add('hidden');
+          startDateBtn.classList.remove('hidden');
+        });
+
+        // Add Expense Item Form (+ / - Sign Toggle, Amount, Note)
+        document.getElementById('item-sign-plus').addEventListener('click', () => {
+          newItemSign = 1;
+          updateSignToggleButtons('item-sign-plus', 'item-sign-minus', newItemSign);
+        });
+
+        document.getElementById('item-sign-minus').addEventListener('click', () => {
+          newItemSign = -1;
+          updateSignToggleButtons('item-sign-plus', 'item-sign-minus', newItemSign);
+        });
+
+        document.getElementById('add-item-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const costEl = document.getElementById('item-cost-input');
+          const nameEl = document.getElementById('item-name-input');
+          addExpenseItem(costEl.value, nameEl.value);
+          costEl.value = '';
+          nameEl.value = '';
+          costEl.focus();
+        });
+
+        // Sync view when user navigates with browser Back/Forward buttons
+        window.addEventListener('hashchange', () => {
+          const hash = window.location.hash || '';
+          const nextId = hash.startsWith('#project=')
+            ? decodeURIComponent(hash.slice('#project='.length)).trim() || null
+            : null;
+          if (nextId !== activeProjectId) {
+            editingItemId = null;
+            setActiveProject(nextId, false);
+            renderCurrentView();
           }
         });
 
-        window.addEventListener('pagehide', flushPendingSync);
+        // Instant background sync on tab focus, visibility return, or network reconnect
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            if (getStoredGitHubToken()) {
+              pullProjectsFromGist(true);
+              startLiveSyncLoop();
+            }
+          } else if (hasPendingPush) {
+            pushProjectsToGist(true);
+          }
+        });
+
+        window.addEventListener('focus', () => {
+          if (getStoredGitHubToken()) {
+            pullProjectsFromGist(true);
+          }
+        });
+
+        window.addEventListener('online', () => {
+          if (getStoredGitHubToken()) {
+            if (hasPendingPush) {
+              pushProjectsToGist(true);
+            } else {
+              pullProjectsFromGist(true);
+            }
+          }
+        });
       }
 
       /* ----------------------------------------------------------------------
@@ -2870,13 +2761,27 @@
         initWhiteBackgroundTouchIcons();
         bindEvents();
 
+        try {
+          const savedTab = localStorage.getItem(ACTIVE_TAB_KEY);
+          if (savedTab === 'ongoing' || savedTab === 'done') currentTab = savedTab;
+        } catch (_) {}
+
         const unlocked = checkPassphraseGate();
         loadProjects();
+        const restoredProjectId = getPersistedActiveProjectId();
+        if (restoredProjectId) {
+          setActiveProject(restoredProjectId, true);
+        }
         updateSyncIndicatorUI();
         renderCurrentView();
 
         if (unlocked && getStoredGitHubToken()) {
+          startLiveSyncLoop();
           await pullProjectsFromGist(true);
+          if (activeProjectId && !projects.some((p) => p.id === activeProjectId)) {
+            setActiveProject(null);
+            renderCurrentView();
+          }
         }
       })();
     </script>
