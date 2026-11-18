@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Yojna — Project Expense &amp; Management</title>
 
+  <!-- Transparent Favicon for Browser Tabs -->
+  <link rel="icon" type="image/png" sizes="32x32" href="logo.png" />
+  <link rel="icon" type="image/png" href="logo.png" />
+
+  <!-- iOS & Android Bookmark / Home Screen Icons (White #FFFFFF background applied automatically) -->
+  <link id="apple-touch-icon" rel="apple-touch-icon" href="logo.png" />
+  <link id="apple-touch-icon-180" rel="apple-touch-icon" sizes="180x180" href="logo.png" />
+  <link id="web-manifest" rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yojna%22%2C%22short_name%22%3A%22Yojna%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23FFFFFF%22%2C%22theme_color%22%3A%22%237EA172%22%7D" />
+
+  <!-- Mobile Home Screen & Bookmark App Metadata -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Yojna" />
+  <meta name="application-name" content="Yojna" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#7EA172" />
+
   <!-- Inter Font for crisp, modern legibility -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1072,7 +1089,7 @@
          string generated in your browser's Inspect -> Console tab.
          Example: const EMBEDDED_ENCRYPTED_VAULT = 'yojna_v1:eyJzIjoi...';
          ====================================================================== */
-      const EMBEDDED_ENCRYPTED_VAULT = 'yojna_v1:eyJzIjoiY0FOM2hmbTRaNlRUNi9IVFFHLzc3QT09IiwiaSI6Inp1R2dVWDQ4KysvTG42cC8iLCJjIjoiN0h2WHpNNEkyZDNzOTRvVUFnWVNGbEQyOEtSQ2Z3R0tJbVhYNWF1U3RQcUlIazZmb2paaFRsbGhGMDFjS2FEZjNFN3dtRWVja044PSJ9';
+      const EMBEDDED_ENCRYPTED_VAULT = '';
 
       const AVAILABLE_ICONS = [
         'fa-briefcase',
@@ -1177,6 +1194,80 @@
       /* ----------------------------------------------------------------------
          2B. Automatic Dark Mode Engine (System Media Query + Manual Override)
          ---------------------------------------------------------------------- */
+      function initWhiteBackgroundTouchIcons() {
+        try {
+          const img = new Image();
+          img.onload = function () {
+            try {
+              const renderWhiteIcon = (size) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return null;
+
+                // Fill solid pure white (#FFFFFF) background for bookmarks & Home Screen icons
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, size, size);
+
+                // Center transparent logo.png with subtle breathing-room padding for iOS/Android icon masks
+                const maxDim = size * 0.72;
+                const scale = Math.min(maxDim / (img.naturalWidth || size), maxDim / (img.naturalHeight || size));
+                const drawW = (img.naturalWidth || size) * scale;
+                const drawH = (img.naturalHeight || size) * scale;
+                const offsetX = (size - drawW) / 2;
+                const offsetY = (size - drawH) / 2;
+
+                ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+                return canvas.toDataURL('image/png');
+              };
+
+              const whiteIcon180 = renderWhiteIcon(180);
+              const whiteIcon512 = renderWhiteIcon(512);
+
+              if (whiteIcon180) {
+                const touchIcon = document.getElementById('apple-touch-icon');
+                const touchIcon180 = document.getElementById('apple-touch-icon-180');
+                if (touchIcon) touchIcon.href = whiteIcon180;
+                if (touchIcon180) touchIcon180.href = whiteIcon180;
+              }
+
+              if (whiteIcon512) {
+                const manifestObj = {
+                  name: 'Yojna',
+                  short_name: 'Yojna',
+                  start_url: window.location.href.split('#')[0],
+                  display: 'standalone',
+                  background_color: '#FFFFFF',
+                  theme_color: '#7EA172',
+                  icons: [
+                    {
+                      src: whiteIcon180 || whiteIcon512,
+                      sizes: '180x180',
+                      type: 'image/png',
+                      purpose: 'any maskable',
+                    },
+                    {
+                      src: whiteIcon512,
+                      sizes: '512x512',
+                      type: 'image/png',
+                      purpose: 'any maskable',
+                    },
+                  ],
+                };
+                const manifestLink = document.getElementById('web-manifest');
+                if (manifestLink) {
+                  manifestLink.href =
+                    'data:application/manifest+json;charset=utf-8,' +
+                    encodeURIComponent(JSON.stringify(manifestObj));
+                }
+              }
+            } catch (_) {}
+          };
+          img.src = 'logo.png';
+        } catch (_) {}
+      }
+
       function applyTheme(mode) {
         themeMode = mode;
         const prefersDark =
@@ -1505,7 +1596,12 @@
           if (raw) {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed)) {
-              projects = parsed;
+              projects = parsed.filter(
+                (p) => p && p.id !== 'proj_seed_1' && p.id !== 'proj_seed_2'
+              );
+              if (projects.length !== parsed.length) {
+                saveProjects(false);
+              }
               return;
             }
           }
@@ -1513,34 +1609,8 @@
           console.error('Failed to read Yojna storage:', err);
         }
 
-        // Seed realistic initial projects on very first launch so the user can explore immediately
-        const today = getTodayISO();
-        projects = [
-          {
-            id: 'proj_seed_1',
-            name: 'Home Office Setup',
-            icon: 'fa-laptop-code',
-            status: 'ongoing',
-            startDate: today,
-            items: [
-              { id: 'item_1', type: '+', amount: 1500.0, description: 'Initial Project Budget' },
-              { id: 'item_2', type: '-', amount: 420.0, description: 'Standing Desk Frame & Top' },
-              { id: 'item_3', type: '-', amount: 185.5, description: 'Ergonomic Task Chair' },
-            ],
-          },
-          {
-            id: 'proj_seed_2',
-            name: 'Weekend Cabin Trip',
-            icon: 'fa-plane',
-            status: 'done',
-            startDate: '2026-10-12',
-            items: [
-              { id: 'item_4', type: '+', amount: 600.0, description: 'Shared Travel Pool' },
-              { id: 'item_5', type: '-', amount: 340.0, description: 'Cabin Rental (2 Nights)' },
-              { id: 'item_6', type: '-', amount: 112.25, description: 'Groceries & Firewood' },
-            ],
-          },
-        ];
+        // Start with a completely blank project list
+        projects = [];
         saveProjects(false);
       }
 
@@ -1623,8 +1693,11 @@
           if (fileObj && fileObj.content) {
             const parsed = JSON.parse(fileObj.content);
             if (parsed && Array.isArray(parsed.projects)) {
-              projects = parsed.projects;
-              saveProjects(false);
+              const cleaned = parsed.projects.filter(
+                (p) => p && p.id !== 'proj_seed_1' && p.id !== 'proj_seed_2'
+              );
+              projects = cleaned;
+              saveProjects(cleaned.length !== parsed.projects.length);
               if (activeProjectId) {
                 renderProjectDetail();
               } else {
@@ -2547,6 +2620,7 @@
       }
 
       // Initialize App
+      initWhiteBackgroundTouchIcons();
       initThemeSystem();
       loadProjects();
       updateSyncIndicatorUI();
